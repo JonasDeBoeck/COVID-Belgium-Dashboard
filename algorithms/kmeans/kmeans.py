@@ -1,3 +1,4 @@
+from textwrap import indent
 import numpy as np
 import pandas as pd
 import random as rd
@@ -55,7 +56,7 @@ class Kmeans:
         Starts the clustering
         """
         print("Start clustering")
-        if (not len(self.representatives) == 0):
+        if (len(self.representatives) == 0):
             print("Choosing initial representatives")
             self.__choose_initial_representatives()
         print(f"Initial representatives are:\n{self.representatives}")
@@ -246,3 +247,13 @@ class Kmeans:
             cluster_accuracy /= self.k
             total_accuracy += cluster_accuracy
         self.accuracy = total_accuracy
+
+    def results_to_csv(self, path):
+        cluster_provinces = pd.DataFrame(columns=self.features, data=self.original_dataset)
+        cluster_provinces["CLUSTER"] = self.c
+        cluster_metadata = pd.DataFrame(columns=self.features, data=self.representatives)
+        cluster_metadata.index = np.arange(1, len(cluster_metadata) + 1)
+        cluster_metadata = cluster_metadata.rename({"index": "CLUSTER"})
+
+        cluster_provinces.to_csv(f"{path}/CLUSTER_PROVINCES.csv")
+        cluster_metadata.to_csv(f"{path}/CLUSTER_METADATA.csv")
