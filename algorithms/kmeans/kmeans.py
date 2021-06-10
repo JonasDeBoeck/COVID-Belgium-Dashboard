@@ -249,7 +249,8 @@ class Kmeans:
         self.accuracy = total_accuracy
 
     def results_to_csv(self, path):
-        cluster_provinces = pd.DataFrame(columns=self.features, data=self.original_dataset)
+        original_data = pd.read_csv(self.path)
+        cluster_provinces = pd.DataFrame({"PROVINCE": original_data["PROVINCE"], "INFECTION_RATE": original_data["INFECTION_RATE"], "HOSPITALISATION_RATE": original_data["HOSPITALISATION_RATE"], "TEST_POS_PERCENTAGE": original_data["TEST_POS_PERCENTAGE"]})
         cluster_provinces["CLUSTER"] = self.c
         cluster_metadata = pd.DataFrame(columns=self.features, data=self.representatives)
         cluster_metadata.index = np.arange(1, len(cluster_metadata) + 1)
