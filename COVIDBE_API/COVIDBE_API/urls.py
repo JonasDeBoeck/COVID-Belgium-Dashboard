@@ -19,5 +19,8 @@ from .api import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.kmeans_results, name="kmeans_results"),
+    path('kmeans/', views.kmeans_results, name="kmeans_results"),
+    path('cases/<str:region>', views.cases, name="cases"),
+    path('hospitalisations/<str:region>', views.hospitalisations, name="hospitalisations"),
+    path('tests/<str:region>', views.tests, name="tests"),
 ]

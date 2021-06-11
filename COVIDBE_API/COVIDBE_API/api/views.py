@@ -15,7 +15,8 @@ def kmeans_results(request):
         reader = csv.DictReader(f)
         metadata = []
         for row in reader:
-            row_data = {"CLUSTER": row["CLUSTER"], "INFECTION_RATE": row["INFECTION_RATE"], "HOSPITALISATION_RATE": row["HOSPITALISATION_RATE"], "TEST_POS_PERCENTAGE": row["TEST_POS_PERCENTAGE"]}
+            row_data = {"CLUSTER": row["CLUSTER"], "INFECTION_RATE": row["INFECTION_RATE"], 
+                        "HOSPITALISATION_RATE": row["HOSPITALISATION_RATE"], "TEST_POS_PERCENTAGE": row["TEST_POS_PERCENTAGE"]}
             metadata.append(row_data)
 
         data["METADATA"] = metadata
@@ -24,10 +25,58 @@ def kmeans_results(request):
         reader = csv.DictReader(f)
         province_data = []
         for row in reader: 
-            row_data = {"PROVINCE": row["PROVINCE"], "INFECTION_RATE": row["INFECTION_RATE"], "HOSPITALISATION_RATE": row["HOSPITALISATION_RATE"], "TEST_POS_PERCENTAGE": row["TEST_POS_PERCENTAGE"], "CLUSTER": row["CLUSTER"]}
+            row_data = {"PROVINCE": row["PROVINCE"], "INFECTION_RATE": row["INFECTION_RATE"], 
+                        "HOSPITALISATION_RATE": row["HOSPITALISATION_RATE"], "TEST_POS_PERCENTAGE": row["TEST_POS_PERCENTAGE"], 
+                        "CLUSTER": row["CLUSTER"]}
             province_data.append(row_data)
 
         data["PROVINCES"] = province_data
+
+    res = json.dumps(data, ensure_ascii=False).encode("utf8")
+    return HttpResponse(res, content_type="application/json")
+
+@api_view(('GET',))
+def cases(request, region: str = None):
+    data = []
+
+    with open("data\\filtered_data\CASES_RECOVERED_DEATHS_ACTIVE.csv", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["REGION"].lower() == region.lower():
+                row_data = {"DATE": row["DATE"], "REGION": row["REGION"], "NEW_CASES": row["NEW_CASES"], 
+                            "CUMULATIVE_CASES": row["CUMULATIVE_CASES"], "NEW_RECOVERED": row["NEW_RECOVERED"], 
+                            "CUMULATIVE_RECOVERED": row["CUMULATIVE_RECOVERED"], "NEW_DEATHS": row["NEW_DEATHS"], 
+                            "CUMULATIVE_DEATHS": row["CUMULATIVE_DEATHS"], "ACTIVE_CASES": row["ACTIVE_CASES"]}
+                data.append(row_data)
+
+    res = json.dumps(data, ensure_ascii=False).encode("utf8")
+    return HttpResponse(res, content_type="application/json")
+
+
+@api_view(('GET',))
+def hospitalisations(request, region: str = None):
+    data = []
+
+    with open("data\\filtered_data\HOSP.csv", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["REGION"].lower() == region.lower():
+                row_data = {"DATE": row["DATE"], "REGION": row["REGION"], "TOTAL_IN_ICU": row["TOTAL_IN_ICU"], "NEW_IN": row["NEW_IN"]}
+                data.append(row_data)
+
+    res = json.dumps(data, ensure_ascii=False).encode("utf8")
+    return HttpResponse(res, content_type="application/json")
+
+@api_view(('GET',))
+def tests(request, region: str = None):
+    data = []
+
+    with open("data\\filtered_data\TESTS.csv", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["REGION"].lower() == region.lower():
+                row_data = {"DATE": row["DATE"], "REGION": row["REGION"], "TESTS_ALL": row["TESTS_ALL"], "TESTS_ALL_POS": row["TESTS_ALL_POS"]}
+                data.append(row_data)
 
     res = json.dumps(data, ensure_ascii=False).encode("utf8")
     return HttpResponse(res, content_type="application/json")
