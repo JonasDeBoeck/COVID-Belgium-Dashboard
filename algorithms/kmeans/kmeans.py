@@ -254,7 +254,7 @@ class Kmeans:
         cluster_provinces["CLUSTER"] = self.c
         cluster_metadata = pd.DataFrame(columns=self.features, data=self.representatives)
         cluster_metadata.index = np.arange(1, len(cluster_metadata) + 1)
-        cluster_metadata = cluster_metadata.rename({"index": "CLUSTER"})
-
+        cluster_metadata.index.name = "CLUSTER"
+        
         cluster_provinces.to_csv(f"{path}/CLUSTER_PROVINCES.csv")
         cluster_metadata.to_csv(f"{path}/CLUSTER_METADATA.csv")
