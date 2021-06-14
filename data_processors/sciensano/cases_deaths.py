@@ -11,7 +11,7 @@ columns = ["DATE", "REGION", "NEW_CASES", "CUMULATIVE_CASES", "NEW_RECOVERED", "
 df = pd.DataFrame(columns=columns)
 dates = pd.date_range(start="2020-03-01", end=date.today())
 
-new_cases_belgium = cases_df.groupby("DATE", as_index=False).sum("CASES")
+new_cases_belgium = cases_df.groupby("DATE", as_index=False).sum()
 new_cases_belgium = new_cases_belgium.rename(columns={"CASES": "NEW_CASES"})
 new_cases_belgium["REGION"] = "Belgium"
 new_cases_belgium["DATE"] = pd.to_datetime(new_cases_belgium["DATE"])
@@ -21,7 +21,7 @@ new_cases_belgium = new_cases_belgium.append(dates_df)
 new_cases_belgium = new_cases_belgium.sort_values(by="DATE")
 new_cases_belgium["CUMULATIVE_CASES"] = new_cases_belgium["NEW_CASES"].cumsum()
 
-new_deaths_belgium = deaths_df.groupby("DATE", as_index=False).sum("DEATHS")
+new_deaths_belgium = deaths_df.groupby("DATE", as_index=False).sum()
 new_deaths_belgium = new_deaths_belgium.rename(columns={"DEATHS": "NEW_DEATHS"})
 new_deaths_belgium["DATE"] = pd.to_datetime(new_deaths_belgium["DATE"])
 missing_dates = dates.difference(new_deaths_belgium["DATE"])
@@ -45,7 +45,7 @@ df = df.reset_index(drop=True)
 provinces = ["VlaamsBrabant", "WestVlaanderen", "OostVlaanderen", "Namur", "Luxembourg", "Limburg", "Liège", "Hainaut", "Brussels", "BrabantWallon", "Antwerpen"]
 for province in provinces:
     new_cases_province = (cases_df[cases_df["PROVINCE"] == province])
-    new_cases_province = new_cases_province.groupby("DATE", as_index=False).sum("CASE")
+    new_cases_province = new_cases_province.groupby("DATE", as_index=False).sum()
     new_cases_province["REGION"] = province
     new_cases_province = new_cases_province.rename(columns={"CASES": "NEW_CASES"})
     new_cases_province["DATE"] = pd.to_datetime(new_cases_province["DATE"])
@@ -56,8 +56,8 @@ for province in provinces:
     new_cases_province["CUMULATIVE_CASES"] = new_cases_province["NEW_CASES"].cumsum()
     new_cases_province["NEW_RECOVERED"] = 0
     for index, row in new_cases_province.iterrows():
-        if index > 20:
-            new_cases_province.iloc[index, 4] = new_cases_province.iloc[index - 21, 1]
+        if index > 13:
+            new_cases_province.iloc[index, 4] = new_cases_province.iloc[index - 14, 1]
     new_cases_province["CUMULATIVE_RECOVERED"] = new_cases_province["NEW_RECOVERED"].cumsum()
     new_cases_province["NEW_DEATHS"] = 0
     new_cases_province["CUMULATIVE_DEATHS"] = 0

@@ -10,7 +10,6 @@ df = pd.DataFrame(columns=columns)
 
 tests_belgium = tests_df.groupby("DATE", as_index=False).sum()
 tests_belgium["REGION"] = "Belgium"
-print(tests_belgium)
 df = df.append(tests_belgium)
 
 provinces = ["VlaamsBrabant", "WestVlaanderen", "OostVlaanderen", "Namur", "Luxembourg", "Limburg", "Liège", "Hainaut", "Brussels", "BrabantWallon", "Antwerpen"]
@@ -18,8 +17,6 @@ provinces = ["VlaamsBrabant", "WestVlaanderen", "OostVlaanderen", "Namur", "Luxe
 for province in provinces:
     tests_province = (tests_df[tests_df["PROVINCE"] == province])
     tests_province = tests_province.rename(columns={"PROVINCE": "REGION"})
-    print(df)
-    print(tests_province)
     df = df.append(tests_province)
 
 df.to_csv("data/filtered_data/TESTS.csv")
