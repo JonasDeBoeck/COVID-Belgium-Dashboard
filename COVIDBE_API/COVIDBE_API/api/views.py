@@ -80,3 +80,18 @@ def tests(request, region: str = None):
 
     res = json.dumps(data, ensure_ascii=False).encode("utf8")
     return HttpResponse(res, content_type="application/json")
+
+@api_view(('GET',))
+def predictions(request, region: str = None):
+    data = []
+
+    with open(f"data\\resulted_data\\neural_network\{region}\pred_all.csv", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["SP-Subregião"].lower() == region.lower():
+                row_data = {"DATE": row["Data"], "REGION": row["SP-Subregião"], "INFECTIONS": row["Infected"], "RECOVERED": row["Recovered"],
+                            "SUSCEPTIBLE": row["Susceptible"], "RT": row["Rt"], "TRAIN": row["Used in Train"]}
+                data.append(row_data)
+
+    res = json.dumps(data, ensure_ascii=False).encode("utf8")
+    return HttpResponse(res, content_type="application/json")
