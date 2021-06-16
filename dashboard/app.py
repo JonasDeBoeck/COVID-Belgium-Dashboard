@@ -181,11 +181,11 @@ def render_content(tab):
         ])
 
 
-###############################
-###                         ###
-### CALLBACKS FOR CASES TAB ###
-###                         ###
-###############################
+##########################
+###                    ###
+### CALLBACKS FOR TABS ###
+###                    ###
+##########################
 
 
 @app.callback(
@@ -305,6 +305,14 @@ def update_province_general_info(province):
         ])
 
     return [div]
+
+
+###############################
+###                         ###
+### CALLBACKS FOR CASES TAB ###
+###                         ###
+###############################
+
 
 @app.callback(
     Output('active-div', 'children'),
