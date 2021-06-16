@@ -11,6 +11,7 @@ from dash.dependencies import Input, Output
 from dash_html_components.Div import Div
 from dash_html_components.Span import Span
 import dash_bootstrap_components as dbc
+from geojson_rewind import rewind
 import plotly.express as px
 import plotly.graph_objs as go
 import pandas as pd
@@ -37,13 +38,18 @@ app.layout = html.Div([
 df = pd.read_csv("data/resulted_data/kmeans/CLUSTER_PROVINCES.csv")
 df = df.rename(columns={"PROVINCE": "Provincie", "INFECTION_RATE": "Infectie graad", "HOSPITALISATION_RATE": "Hospitalisatie graad", "TEST_POS_PERCENTAGE": "Percentage positieve testen", "CLUSTER": "Cluster"})
 df = df.astype({"Cluster": "int32"})
+
+df["Cluster"] += 1
 df = df.round(2)
-with open('geojson.json') as file:
+with open('geojson.json', encoding="utf-8") as file:
     be = json.load(file)
 
-fig = px.choropleth(df, geojson=be, locations="Provincie", featureidkey="properties.NameDUT", projection="mercator", color="Cluster", hover_data=["Provincie", "Infectie graad", "Hospitalisatie graad", "Percentage positieve testen", "Cluster"])
-fig.update_geos(fitbounds="locations", visible=False)
-fig.update_layout(dragmode=False, showlegend=False)
+be = rewind(be, rfc7946=False)
+
+cluster_be = px.choropleth(df, geojson=be, locations="Provincie", featureidkey="properties.NameDUT", projection="mercator", color="Cluster", hover_data=["Provincie", "Infectie graad", "Hospitalisatie graad", "Percentage positieve testen", "Cluster"])
+
+cluster_be.update_geos(fitbounds="locations", visible=False)
+cluster_be.update_layout(dragmode=False)
 
 @app.callback(
     Output('tabs-content', 'children'),
@@ -123,7 +129,7 @@ def render_content(tab):
     elif tab == 'clustering':
         return html.Div([
             dcc.Graph(
-                figure=fig,
+                figure=cluster_be,
                 config={'modeBarButtonsToRemove': ['zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'zoomInGeo', 'zoomOutGeo']}
             )
         ])
