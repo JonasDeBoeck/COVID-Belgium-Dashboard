@@ -7,6 +7,9 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+from dash_html_components.Div import Div
+from dash_html_components.Span import Span
+import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objs as go
 import pandas as pd
@@ -15,7 +18,7 @@ import json
 
 from plotly.subplots import make_subplots
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = [dbc.themes.BOOTSTRAP]
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
 
@@ -68,21 +71,25 @@ def render_content(tab):
                 clearable=False
             ),
 
-            html.Div([
+            html.Div({
 
-            ], id="active-div"),
-
-            html.Div([
-
-            ], id="cases-div"),
+            }, id='general-info-div'),
 
             html.Div([
 
-            ], id="recovered-div"),
+            ], id='active-div'),
 
             html.Div([
 
-            ], id="deaths-div"),
+            ], id='cases-div'),
+
+            html.Div([
+
+            ], id='recovered-div'),
+
+            html.Div([
+
+            ], id='deaths-div'),
         ])
     elif tab == 'predictions':
         return html.Div([
@@ -181,6 +188,124 @@ def render_content(tab):
 
 
 @app.callback(
+    Output('general-info-div', 'children'),
+    Input('predictions-province', 'value')
+)
+def update_province_general_info(province):
+    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    df = df[ df['REGION'] == province ]
+
+    if province == "Belgium":
+        active_infections = df['ACTIVE_CASES'].iloc[-1]
+        cumulative_cases = df['CUMULATIVE_CASES'].iloc[-1]
+        cumulative_recovered = df['CUMULATIVE_RECOVERED'].iloc[-1]
+        cumulative_deaths = df['CUMULATIVE_DEATHS'].iloc[-1]
+        div = html.Div([
+            dbc.Row([
+                dbc.Col(
+                    dbc.Card([
+                        dbc.CardHeader('Active cases'),
+                        dbc.CardBody([
+                            html.H5(f'{province}', className='card-title'),
+                            html.P(active_infections, className='card-text')
+                        ])
+                    ], style={
+                        "border-left": "5px solid CornflowerBlue",
+                    }), 
+                    width=2
+                ),
+
+                dbc.Col(
+                    dbc.Card([
+                        dbc.CardHeader('Total cases'),
+                        dbc.CardBody([
+                            html.H5(f'{province}', className='card-title'),
+                            html.P(cumulative_cases, className='card-text')
+                        ])
+                    ], style={
+                        "border-left": "5px solid orange",
+                    }), 
+                    width=2
+                ),
+
+                dbc.Col(
+                    dbc.Card([
+                        dbc.CardHeader('Total recovered'),
+                        dbc.CardBody([
+                            html.H5(f'{province}', className='card-title'),
+                            html.P(cumulative_recovered, className='card-text')
+                        ])
+                    ], style={
+                        "border-left": "5px solid green",
+                    }), 
+                    width=2
+                ),
+
+                dbc.Col(
+                    dbc.Card([
+                        dbc.CardHeader('Total Deaths'),
+                        dbc.CardBody([
+                            html.H5(f'{province}', className='card-title'),
+                            html.P(cumulative_deaths, className='card-text')
+                        ])
+                    ], style={
+                        "border-left": "5px solid red",
+                    }), 
+                    width=2
+                ),
+            ], className="justify-content-center m-0")
+        ])
+    else:
+        active_infections = df["ACTIVE_CASES"].iloc[-1]
+        cumulative_cases = df["CUMULATIVE_CASES"].iloc[-1]
+        cumulative_recovered = df["CUMULATIVE_RECOVERED"].iloc[-1]
+
+        div = html.Div([
+            dbc.Row([
+                dbc.Col(
+                    dbc.Card([
+                        dbc.CardHeader('Active cases'),
+                        dbc.CardBody([
+                            html.H5(f'{province}', className='card-title'),
+                            html.P(active_infections, className='card-text')
+                        ])
+                    ], style={
+                        "border-left": "5px solid CornflowerBlue",
+                    }), 
+                    width=2
+                ),
+
+                dbc.Col(
+                    dbc.Card([
+                        dbc.CardHeader('Total cases'),
+                        dbc.CardBody([
+                            html.H5(f'{province}', className='card-title'),
+                            html.P(cumulative_cases, className='card-text')
+                        ])
+                    ], style={
+                        "border-left": "5px solid orange",
+                    }), 
+                    width=2
+                ),
+
+                dbc.Col(
+                    dbc.Card([
+                        dbc.CardHeader('Total recovered'),
+                        dbc.CardBody([
+                            html.H5(f'{province}', className='card-title'),
+                            html.P(cumulative_recovered, className='card-text')
+                        ])
+                    ], style={
+                        "border-left": "5px solid green",
+                    }), 
+                    width=2
+                ),
+            ], className="justify-content-center")
+        ])
+
+    return [div]
+
+@app.callback(
     Output('active-div', 'children'),
     Input('predictions-province', 'value')
 )
@@ -202,7 +327,8 @@ def update_province_active(province):
         go.Scatter(
             x=df['DATE'], 
             y=df['ACTIVE_CASES'],
-            mode='lines'
+            mode='lines',
+            line=dict(color='CornflowerBlue')
         ),
         row=1, col=1
     )
@@ -231,18 +357,20 @@ def update_province_cases(province):
 
     fig.add_trace(
         go.Scatter(
-        x=df['DATE'], 
-        y=df['NEW_CASES'],
-        mode='lines'
+            x=df['DATE'], 
+            y=df['NEW_CASES'],
+            mode='lines',
+            line=dict(color='orange')
         ),
         row=1, col=1
     )
 
     fig.add_trace(
         go.Scatter(
-        x=df['DATE'], 
-        y=df['CUMULATIVE_CASES'],
-        mode='lines'
+            x=df['DATE'], 
+            y=df['CUMULATIVE_CASES'],
+            mode='lines',
+            line=dict(color='orange')
         ),
         row=1, col=2
     )
@@ -272,18 +400,20 @@ def update_province_recovered(province):
 
     fig.add_trace(
         go.Scatter(
-        x=df['DATE'], 
-        y=df['NEW_RECOVERED'],
-        mode='lines'
+            x=df['DATE'], 
+            y=df['NEW_RECOVERED'],
+            mode='lines',
+            line=dict(color='green')
         ),
         row=1, col=1
     )
 
     fig.add_trace(
         go.Scatter(
-        x=df['DATE'], 
-        y=df['CUMULATIVE_RECOVERED'],
-        mode='lines'
+            x=df['DATE'], 
+            y=df['CUMULATIVE_RECOVERED'],
+            mode='lines',
+            line=dict(color='green')
         ),
         row=1, col=2
     )
@@ -315,18 +445,20 @@ def update_province_deaths(province):
 
         fig.add_trace(
             go.Scatter(
-            x=df['DATE'], 
-            y=df['NEW_DEATHS'],
-            mode='lines'
+                x=df['DATE'], 
+                y=df['NEW_DEATHS'],
+                mode='lines',
+                line=dict(color='red')
             ),
             row=1, col=1
         )
 
         fig.add_trace(
             go.Scatter(
-            x=df['DATE'], 
-            y=df['CUMULATIVE_DEATHS'],
-            mode='lines'
+                x=df['DATE'], 
+                y=df['CUMULATIVE_DEATHS'],
+                mode='lines',
+                line=dict(color='red')
             ),
             row=1, col=2
         )
