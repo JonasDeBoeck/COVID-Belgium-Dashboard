@@ -3,6 +3,7 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
+from os import name
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -328,10 +329,12 @@ def update_province_active(province):
             x=df['DATE'], 
             y=df['ACTIVE_CASES'],
             mode='lines',
-            line=dict(color='CornflowerBlue')
+            line=dict(color='CornflowerBlue'),
         ),
         row=1, col=1
     )
+
+    fig.update_layout(hovermode="x unified")
 
     return [dcc.Graph(figure=fig)]
 
@@ -360,7 +363,8 @@ def update_province_cases(province):
             x=df['DATE'], 
             y=df['NEW_CASES'],
             mode='lines',
-            line=dict(color='orange')
+            line=dict(color='orange'),
+            name=""
         ),
         row=1, col=1
     )
@@ -370,12 +374,13 @@ def update_province_cases(province):
             x=df['DATE'], 
             y=df['CUMULATIVE_CASES'],
             mode='lines',
-            line=dict(color='orange')
+            line=dict(color='orange'),
+            name=""
         ),
         row=1, col=2
     )
 
-    fig.update_layout(showlegend=False)
+    fig.update_layout(hovermode="x unified", showlegend=False)
 
     return [dcc.Graph(figure=fig)]
 
@@ -403,7 +408,8 @@ def update_province_recovered(province):
             x=df['DATE'], 
             y=df['NEW_RECOVERED'],
             mode='lines',
-            line=dict(color='green')
+            line=dict(color='green'),
+            name=""
         ),
         row=1, col=1
     )
@@ -413,12 +419,13 @@ def update_province_recovered(province):
             x=df['DATE'], 
             y=df['CUMULATIVE_RECOVERED'],
             mode='lines',
-            line=dict(color='green')
+            line=dict(color='green'),
+            name=""
         ),
         row=1, col=2
     )
 
-    fig.update_layout(showlegend=False)
+    fig.update_layout(hovermode="x unified", showlegend=False)
 
     return [dcc.Graph(figure=fig)]
 
@@ -448,7 +455,8 @@ def update_province_deaths(province):
                 x=df['DATE'], 
                 y=df['NEW_DEATHS'],
                 mode='lines',
-                line=dict(color='red')
+                line=dict(color='red'),
+                name=""
             ),
             row=1, col=1
         )
@@ -458,12 +466,13 @@ def update_province_deaths(province):
                 x=df['DATE'], 
                 y=df['CUMULATIVE_DEATHS'],
                 mode='lines',
-                line=dict(color='red')
+                line=dict(color='red'),
+                name=""
             ),
             row=1, col=2
         )
 
-        fig.update_layout(showlegend=False)
+        fig.update_layout(hovermode="x unified", showlegend=False)
 
         return [dcc.Graph(figure=fig)]
     else:
