@@ -13,6 +13,8 @@ import pandas as pd
 from urllib.request import urlopen
 import json
 
+from plotly.subplots import make_subplots
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
@@ -28,12 +30,16 @@ app.layout = html.Div([
     html.Div(id='tabs-content')
 ])
 
-df = pd.read_csv('data/filtered_data/kmeans.csv')
+df = pd.read_csv("data/resulted_data/kmeans/CLUSTER_PROVINCES.csv")
+df = df.rename(columns={"PROVINCE": "Provincie", "INFECTION_RATE": "Infectie graad", "HOSPITALISATION_RATE": "Hospitalisatie graad", "TEST_POS_PERCENTAGE": "Percentage positieve testen", "CLUSTER": "Cluster"})
+df = df.astype({"Cluster": "int32"})
+df = df.round(2)
+with open('geojson.json') as file:
+    be = json.load(file)
 
-with urlopen('https://raw.githubusercontent.com/mathiasleroy/Belgium-Geographic-Data/master/dist/polygons/geojson/Belgium.provinces.WGS84.geojson') as response:
-    belgium = json.load(response)
-
-cluster_map = px.choropleth(geojson=belgium)
+fig = px.choropleth(df, geojson=be, locations="Provincie", featureidkey="properties.NameDUT", projection="mercator", color="Cluster", hover_data=["Provincie", "Infectie graad", "Hospitalisatie graad", "Percentage positieve testen", "Cluster"])
+fig.update_geos(fitbounds="locations", visible=False)
+fig.update_layout(dragmode=False, showlegend=False)
 
 @app.callback(
     Output('tabs-content', 'children'),
@@ -62,19 +68,21 @@ def render_content(tab):
                 clearable=False
             ),
 
-            dcc.Graph(id='active-cases-graph'),
+            html.Div([
 
-            dcc.Graph(id='new-cases-graph'),
+            ], id="active-div"),
 
-            dcc.Graph(id='cumulative-cases-graph'),
+            html.Div([
 
-            dcc.Graph(id='new-recovered-graph'),
+            ], id="cases-div"),
 
-            dcc.Graph(id='cumulative-recovered-graph'),
+            html.Div([
 
-            dcc.Graph(id='new-deaths-graph'),
+            ], id="recovered-div"),
 
-            dcc.Graph(id='cumulative-deaths-graph'),
+            html.Div([
+
+            ], id="deaths-div"),
         ])
     elif tab == 'predictions':
         return html.Div([
@@ -106,7 +114,10 @@ def render_content(tab):
         ])
     elif tab == 'clustering':
         return html.Div([
-            dcc.Graph(figure=cluster_map)
+            dcc.Graph(
+                figure=fig,
+                config={'modeBarButtonsToRemove': ['zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'zoomInGeo', 'zoomOutGeo']}
+            )
         ])
     elif tab == 'hospitalisations':
         return html.Div([
@@ -161,6 +172,179 @@ def render_content(tab):
             dcc.Graph(id='total-pos-tests-graph'),
         ])
 
+
+###############################
+###                         ###
+### CALLBACKS FOR CASES TAB ###
+###                         ###
+###############################
+
+
+@app.callback(
+    Output('active-div', 'children'),
+    Input('predictions-province', 'value')
+)
+def update_province_active(province):
+    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    df = df[ df["REGION"] == province ]
+
+    # active_cases = px.line(x=df['DATE'], y=df['ACTIVE_CASES'], labels={'x': 'Datum', 'y': 'Actieve infecties'}, title='Actieve infecties')
+
+    fig = make_subplots(
+        rows=1,
+        cols=1,
+        subplot_titles=(
+            'Actieve infecties',
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=df['DATE'], 
+            y=df['ACTIVE_CASES'],
+            mode='lines'
+        ),
+        row=1, col=1
+    )
+
+    return [dcc.Graph(figure=fig)]
+
+@app.callback(
+    Output('cases-div', 'children'),
+    Input('predictions-province', 'value')
+)
+def update_province_cases(province):
+    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    df = df[ df["REGION"] == province ]
+
+    # new_cases = px.line(x=df['DATE'], y=df['NEW_CASES'], labels={'x': 'Datum', 'y': 'Nieuwe infecties'})
+    # cum_cases = px.line(x=df['DATE'], y=df['CUMULATIVE_CASES'], labels={'x': 'Datum', 'y': 'Cumulatieve infecties'})
+
+    fig = make_subplots(
+        rows=1, 
+        cols=2,
+        subplot_titles=(
+            'Nieuwe besmettingen per dag',
+            'Cumulatief aantal besmettingen'
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+        x=df['DATE'], 
+        y=df['NEW_CASES'],
+        mode='lines'
+        ),
+        row=1, col=1
+    )
+
+    fig.add_trace(
+        go.Scatter(
+        x=df['DATE'], 
+        y=df['CUMULATIVE_CASES'],
+        mode='lines'
+        ),
+        row=1, col=2
+    )
+
+    fig.update_layout(showlegend=False)
+
+    return [dcc.Graph(figure=fig)]
+
+@app.callback(
+    Output('recovered-div', 'children'),
+    Input('predictions-province', 'value')
+)
+def update_province_recovered(province):
+    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    df = df[ df["REGION"] == province ]
+    # new_recovered = px.line(x=df['DATE'], y=df['NEW_RECOVERED'], labels={'x': 'Datum', 'y': 'Nieuwe herstelden'})
+    # cum_recovered = px.line(x=df['DATE'], y=df['CUMULATIVE_RECOVERED'], labels={'x': 'Datum', 'y': 'Cumulatief aantal herstelden'})
+    
+    fig = make_subplots(
+        rows=1, 
+        cols=2,
+        subplot_titles=(
+            'Nieuwe recoveries per dag',
+            'Cumulatief aantal recoveries'
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+        x=df['DATE'], 
+        y=df['NEW_RECOVERED'],
+        mode='lines'
+        ),
+        row=1, col=1
+    )
+
+    fig.add_trace(
+        go.Scatter(
+        x=df['DATE'], 
+        y=df['CUMULATIVE_RECOVERED'],
+        mode='lines'
+        ),
+        row=1, col=2
+    )
+
+    fig.update_layout(showlegend=False)
+
+    return [dcc.Graph(figure=fig)]
+
+@app.callback(
+    Output('deaths-div', 'children'),
+    Input('predictions-province', 'value')
+)
+def update_province_deaths(province):
+    if province == "Belgium":
+        df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+        df = df[ df["REGION"] == province ]
+        # new_deaths = px.line(x=df['DATE'], y=df['NEW_DEATHS'], labels={'x': 'Datum', 'y': 'Nieuwe doden'})
+        # cum_deaths = px.line(x=df['DATE'], y=df['CUMULATIVE_DEATHS'], labels={'x': 'Datum', 'y': 'Cumulatief doden'})
+        # return [dcc.Graph(figure=new_deaths), dcc.Graph(figure=cum_deaths)]
+
+        fig = make_subplots(
+            rows=1, 
+            cols=2,
+            subplot_titles=(
+                'Nieuwe sterftegevallen per dag',
+                'Cumulatief aantal doden'
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+            x=df['DATE'], 
+            y=df['NEW_DEATHS'],
+            mode='lines'
+            ),
+            row=1, col=1
+        )
+
+        fig.add_trace(
+            go.Scatter(
+            x=df['DATE'], 
+            y=df['CUMULATIVE_DEATHS'],
+            mode='lines'
+            ),
+            row=1, col=2
+        )
+
+        fig.update_layout(showlegend=False)
+
+        return [dcc.Graph(figure=fig)]
+    else:
+        return []
+
+
+#####################################
+###                               ###
+### CALLBACKS FOR PREDICTIONS TAB ###
+###                               ###
+#####################################
+
+
 @app.callback(
     Output('cases-predictions-graph', 'figure'),
     Input('predictions-province', 'value')
@@ -188,81 +372,13 @@ def update_province_rt_predictions(province):
     fig = px.line(x=df['Data'], y=df['Rt'], labels={'x': 'Datum', 'y': 'Reproductie factor'})
     return fig
 
-@app.callback(
-    Output('active-cases-graph', 'figure'),
-    Input('predictions-province', 'value')
-)
-def update_province_active_cases(province):
-    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
-    df = df[ df["REGION"] == province ]
-    fig = px.line(x=df['DATE'], y=df['ACTIVE_CASES'], labels={'x': 'Datum', 'y': 'Actieve infecties'})
-    return fig
 
-@app.callback(
-    Output('new-cases-graph', 'figure'),
-    Input('predictions-province', 'value')
-)
-def update_province_new_cases(province):
-    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
-    df = df[ df["REGION"] == province ]
-    fig = px.line(x=df['DATE'], y=df['NEW_CASES'], labels={'x': 'Datum', 'y': 'Nieuwe infecties'})
-    return fig
+##########################################
+###                                    ###
+### CALLBACKS FOR HOSPITALISATIONS TAB ###
+###                                    ###
+##########################################
 
-@app.callback(
-    Output('cumulative-cases-graph', 'figure'),
-    Input('predictions-province', 'value')
-)
-def update_province_cum_cases(province):
-    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
-    df = df[ df["REGION"] == province ]
-    fig = px.line(x=df['DATE'], y=df['CUMULATIVE_CASES'], labels={'x': 'Datum', 'y': 'Cumulatieve infecties'})
-    return fig
-
-@app.callback(
-    Output('new-recovered-graph', 'figure'),
-    Input('predictions-province', 'value')
-)
-def update_province_new_recoveries(province):
-    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
-    df = df[ df["REGION"] == province ]
-    fig = px.line(x=df['DATE'], y=df['NEW_RECOVERED'], labels={'x': 'Datum', 'y': 'Nieuwe herstelden'})
-    return fig
-
-@app.callback(
-    Output('cumulative-recovered-graph', 'figure'),
-    Input('predictions-province', 'value')
-)
-def update_province_cum_recoveries(province):
-    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
-    df = df[ df["REGION"] == province ]
-    fig = px.line(x=df['DATE'], y=df['CUMULATIVE_RECOVERED'], labels={'x': 'Datum', 'y': 'Cumulatief aantal herstelden'})
-    return fig
-
-@app.callback(
-    Output('new-deaths-graph', 'figure'),
-    Input('predictions-province', 'value')
-)
-def update_province_new_deaths(province):
-    if province == "Belgium":
-        df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
-        df = df[ df["REGION"] == province ]
-        fig = px.line(x=df['DATE'], y=df['NEW_DEATHS'], labels={'x': 'Datum', 'y': 'Nieuwe doden'})
-        return fig
-    else:
-        return {}
-
-@app.callback(
-    Output('cumulative-deaths-graph', 'figure'),
-    Input('predictions-province', 'value')
-)
-def update_province_cum_deaths(province):
-    if province == "Belgium":
-        df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
-        df = df[ df["REGION"] == province ]
-        fig = px.line(x=df['DATE'], y=df['CUMULATIVE_DEATHS'], labels={'x': 'Datum', 'y': 'Cumulatief doden'})
-        return fig
-    else:
-        return {}
 
 @app.callback(
     Output('total-in-icu-graph', 'figure'),
@@ -283,6 +399,14 @@ def update_province_icu(province):
     df = df[ df["REGION"] == province ]
     fig = px.line(x=df['DATE'], y=df['NEW_IN'], labels={'x': 'Datum', 'y': 'Nieuwe opnames'})
     return fig
+
+
+###############################
+###                         ###
+### CALLBACKS FOR TESTS TAB ###
+###                         ###
+###############################
+
 
 @app.callback(
     Output('total-tests-graph', 'figure'),
