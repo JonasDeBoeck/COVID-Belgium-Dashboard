@@ -23,5 +23,6 @@ urlpatterns = [
     path('cases/<str:region>', views.cases, name="cases"),
     path('hospitalisations/<str:region>', views.hospitalisations, name="hospitalisations"),
     path('tests/<str:region>', views.tests, name="tests"),
-    path('predictions/<str:region>', views.predictions, name="predictions")
+    path('predictions/<str:region>', views.predictions, name="predictions"),
+    path('mobility/<str:region>', views.mobility, name="mobility"),
 ]
