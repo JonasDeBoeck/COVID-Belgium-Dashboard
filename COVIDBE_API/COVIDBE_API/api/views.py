@@ -95,3 +95,21 @@ def predictions(request, region: str = None):
 
     res = json.dumps(data, ensure_ascii=False).encode("utf8")
     return HttpResponse(res, content_type="application/json")
+
+
+@api_view(('GET',))
+def mobility(request, region: str = None):
+    data = []
+
+    with open(f"data\\filtered_data\MOBILITY.csv", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["country_region"].lower() == region.lower():
+                row_data = {"DATE": row["date"], "REGION": row["country_region"], "RETAIL": row["retail_and_recreation_percent_change_from_baseline"],
+                "GROCERY": row["grocery_and_pharmacy_percent_change_from_baseline"], "PARKS": row["parks_percent_change_from_baseline"],
+                "TRANSIT": row["transit_stations_percent_change_from_baseline"], "WORKPLACE": row["workplaces_percent_change_from_baseline"], 
+                "RESIDENTIAL": row["residential_percent_change_from_baseline"]}
+                data.append(row_data)
+
+    res = json.dumps(data, ensure_ascii=False).encode("utf8")
+    return HttpResponse(res, content_type="application/json")
