@@ -1419,7 +1419,7 @@ def update_province_predictions(province):
             y=df['Infected'],
             mode='lines',
             line=dict(color='CornflowerBlue'),
-            name=""
+            name="Predicted"
         ),
         row=1, col=1
     )
@@ -1430,7 +1430,7 @@ def update_province_predictions(province):
             y=test_df["ACTIVE_CASES"],
             mode='lines',
             line=dict(color='black', dash='dot'),
-            name=""
+            name="Measured"
         ),
         row=1, col=1
     )
@@ -1441,7 +1441,7 @@ def update_province_predictions(province):
             y=df['Recovered'],
             mode='lines',
             line=dict(color='Green'),
-            name=""
+            name="Predicted"
         ),
         row=1, col=2
     )
@@ -1453,7 +1453,7 @@ def update_province_predictions(province):
                 y=test_df["CUMULATIVE_RECOVERED"] + test_df["CUMULATIVE_DEATHS"],
                 mode='lines',
                 line=dict(color='black', dash='dot'),
-                name=""
+                name="Measured"
             ),
             row=1, col=2
         )
