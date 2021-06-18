@@ -27,7 +27,7 @@ from plotly.subplots import make_subplots
 
 external_stylesheets = [dbc.themes.BOOTSTRAP, "https://use.fontawesome.com/releases/v5.15.3/css/all.css"]
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True, title="COVID-19 Statistics Belgium", update_title='Loading...')
 
 app.layout = html.Div([
     dcc.Tabs(id='tabs', value='cases', children=[
