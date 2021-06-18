@@ -33,8 +33,8 @@ new_deaths_belgium["CUMULATIVE_DEATHS"] = new_deaths_belgium["NEW_DEATHS"].cumsu
 new_cases_belgium["NEW_RECOVERED"] = 0
 
 for index, row in new_cases_belgium.iterrows():
-    if index > 20:
-        new_cases_belgium.iloc[index, 4] = new_cases_belgium.iloc[index - 21, 1] - new_deaths_belgium.iloc[index - 21, 1]
+    if index > 13:
+        new_cases_belgium.iloc[index, 4] = new_cases_belgium.iloc[index - 14, 1] - new_deaths_belgium.iloc[index - 14, 1]
 new_cases_belgium["CUMULATIVE_RECOVERED"] = new_cases_belgium["NEW_RECOVERED"].cumsum()
 
 belgium_df = new_cases_belgium.join(new_deaths_belgium.set_index("DATE"), on="DATE")

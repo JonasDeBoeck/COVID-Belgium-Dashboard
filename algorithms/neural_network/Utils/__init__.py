@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import Models as Mod
 import Learner
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import os
 import numpy as np
 import pandas as pd
@@ -220,40 +219,6 @@ def calc_vacRate(vac):
     vac = vac[vac>0]
     vacR = np.mean(vac)
     return vacR
-
-
-def get_from_sheets(sheet_page = 'Data_subregions', sheets='dados'):
-    scope = ['https://spreadsheets.google.com/feeds',
-             'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('data/cred-sir.json',scope)
-    client = gspread.authorize(creds)
-
-
-    sheet =  client.open(sheets)
-    d = sheet.worksheet(sheet_page)
-    df = pd.DataFrame(d.get_all_records())
-    if 'Data' in df.columns:
-        df.loc[:,'Data'] = pd.to_datetime(df.Data)
-        df.loc[:,'Data'] = df['Data'].dt.strftime('%m/%d/%Y')
-    return df
-
-def atualiza_dados(sheet_page = 'Data_subregions', pasta=None, dataset='dados'):
-    scope = ['https://spreadsheets.google.com/feeds',
-             'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('data/cred-sir.json',scope)
-    client = gspread.authorize(creds)
-
-
-    sheet =  client.open(dataset)
-    d = sheet.worksheet(sheet_page)
-    df = pd.DataFrame(d.get_all_records())
-    if 'Data' in df.columns:
-        df.loc[:,'Data'] = pd.to_datetime(df.Data)
-        df.loc[:,'Data'] = df['Data'].dt.strftime('%m/%d/%Y')
-    if pasta is not None:
-        df.to_csv(f"{pasta}/{dataset} - {sheet_page}.csv")
-    else:
-        df.to_csv(f"data/{dataset} - {sheet_page}.csv")
 
 def translate(r):
         translator = {

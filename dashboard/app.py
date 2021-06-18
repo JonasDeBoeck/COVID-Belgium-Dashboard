@@ -11,6 +11,7 @@ from dash.dependencies import Input, Output
 from dash_html_components.Div import Div
 from dash_html_components.Span import Span
 import dash_table
+from numpy.core.numeric import NaN
 import dash_bootstrap_components as dbc
 from geojson_rewind import rewind
 import plotly.express as px
@@ -18,7 +19,8 @@ import plotly.graph_objs as go
 import pandas as pd
 from urllib.request import urlopen
 import json
-from datetime import date
+from datetime import date, datetime, timedelta
+import math
 
 from plotly.subplots import make_subplots
 
@@ -33,6 +35,7 @@ app.layout = html.Div([
         dcc.Tab(label='Clustering', value='clustering'),
         dcc.Tab(label='Hospitalisations', value='hospitalisations'),
         dcc.Tab(label='Tests', value='tests'),
+        dcc.Tab(label='Mobility', value='mobility'),
     ]),
     html.Div(id='tabs-content')
 ])
@@ -48,13 +51,14 @@ with open('geojson.json', encoding="utf-8") as file:
 
 be = rewind(be, rfc7946=False)
 
-cluster_be = px.choropleth(df, geojson=be, locations="Provincie", featureidkey="properties.NameDUT", projection="mercator", color="Cluster", hover_data=["Provincie", "Infectie graad", "Hospitalisatie graad", "Percentage positieve testen", "Cluster"], height=800)
+cluster_be = px.choropleth(df, geojson=be, locations="Provincie", featureidkey="properties.NameDUT", projection="mercator", color="Cluster", hover_data=["Provincie", "Infectie graad", "Hospitalisatie graad", "Percentage positieve testen", "Cluster"], height=800, color_continuous_scale="ylorrd")
 
 cluster_be.update_geos(fitbounds="locations", visible=False)
 cluster_be.update_layout(dragmode=False, coloraxis_showscale=False)
 
 cluster_metadata = pd.read_csv('data/resulted_data/kmeans/CLUSTER_METADATA.csv')
 cluster_metadata = round(cluster_metadata, 2)
+cluster_metadata = cluster_metadata.rename(columns={"CLUSTER": "Cluster", "INFECTION_RATE": "Infection rate", "HOSPITALISATION_RATE": "Hospitalisation rate", "TEST_POS_PERCENTAGE": "Percentage of positive tests"})
 
 @app.callback(
     Output('tabs-content', 'children'),
@@ -73,7 +77,7 @@ def render_content(tab):
                     {'label': 'Henegouwen', 'value': 'Hainaut'},
                     {'label': 'Luik', 'value': 'Liège'},
                     {'label': 'Limburg', 'value': 'Limburg'},
-                    {'label': 'Luxemburg', 'value': 'Luxemburg'},
+                    {'label': 'Luxemburg', 'value': 'Luxembourg'},
                     {'label': 'Namen', 'value': 'Namur'},
                     {'label': 'Oost-Vlaanderen', 'value': 'OostVlaanderen'},
                     {'label': 'Vlaams-Brabant', 'value': 'VlaamsBrabant'},
@@ -125,7 +129,7 @@ def render_content(tab):
                     {'label': 'Henegouwen', 'value': 'Hainaut'},
                     {'label': 'Luik', 'value': 'Liège'},
                     {'label': 'Limburg', 'value': 'Limburg'},
-                    {'label': 'Luxemburg', 'value': 'Luxemburg'},
+                    {'label': 'Luxemburg', 'value': 'Luxembourg'},
                     {'label': 'Namen', 'value': 'Namur'},
                     {'label': 'Oost-Vlaanderen', 'value': 'OostVlaanderen'},
                     {'label': 'Vlaams-Brabant', 'value': 'VlaamsBrabant'},
@@ -168,12 +172,16 @@ def render_content(tab):
 
                 dbc.Col([
                     html.Div([
-                        dash_table.DataTable(
-                        id="cluster-info-table",
-                        columns=[{"name": i, "id": i} for i in cluster_metadata.columns],
-                        data=cluster_metadata.to_dict('records'),
-                        style_cell={'textAlign': 'left'},
-                        )
+                        html.Div([
+                            html.H3('Clustering results', className="h3"),
+                            html.Article([
+                                html.P('The map on the left shows the country of Belgium and it\'s provinces. \n', style={'margin': '5px', 'marginLeft': '0px'}),
+                                html.P('The provinces are color-coded accordin to their cluster.', style={'margin': '5px', 'marginLeft': '0px'}),
+                                html.P('Hover over a specific province to see it\'s statistics.', style={'margin': '5px', 'marginLeft': '0px'}),
+                                html.P('In the table below the values of the representatives of each cluster are presented.', style={'margin': '5px', 'marginBottom': '10px', 'marginLeft': '0px'}),
+                            ])
+                        ]),
+                        dbc.Table.from_dataframe(cluster_metadata, striped=True, bordered=True, hover=True)
                     ]),
                 ], 
                     className="d-flex align-items-center justify-content-center p-0"
@@ -198,7 +206,7 @@ def render_content(tab):
                     {'label': 'Henegouwen', 'value': 'Hainaut'},
                     {'label': 'Luik', 'value': 'Liège'},
                     {'label': 'Limburg', 'value': 'Limburg'},
-                    {'label': 'Luxemburg', 'value': 'Luxemburg'},
+                    {'label': 'Luxemburg', 'value': 'Luxembourg'},
                     {'label': 'Namen', 'value': 'Namur'},
                     {'label': 'Oost-Vlaanderen', 'value': 'OostVlaanderen'},
                     {'label': 'Vlaams-Brabant', 'value': 'VlaamsBrabant'},
@@ -238,7 +246,7 @@ def render_content(tab):
                     {'label': 'Henegouwen', 'value': 'Hainaut'},
                     {'label': 'Luik', 'value': 'Liège'},
                     {'label': 'Limburg', 'value': 'Limburg'},
-                    {'label': 'Luxemburg', 'value': 'Luxemburg'},
+                    {'label': 'Luxemburg', 'value': 'Luxembourg'},
                     {'label': 'Namen', 'value': 'Namur'},
                     {'label': 'Oost-Vlaanderen', 'value': 'OostVlaanderen'},
                     {'label': 'Vlaams-Brabant', 'value': 'VlaamsBrabant'},
@@ -264,6 +272,46 @@ def render_content(tab):
 
             html.Div(
                 id="tests-div"
+            ),
+        ])
+    elif tab == 'mobility':
+        return html.Div([
+            dcc.Dropdown(
+                id='predictions-province',
+                options=[
+                    {'label': 'Belgium', 'value': 'Belgium'},
+                    {'label': 'Antwerpen', 'value': 'Antwerpen'},
+                    {'label': 'Waals-Brabant', 'value': 'BrabantWallon'},
+                    {'label': 'Brussel', 'value': 'Brussels'},
+                    {'label': 'Henegouwen', 'value': 'Hainaut'},
+                    {'label': 'Luik', 'value': 'Liège'},
+                    {'label': 'Limburg', 'value': 'Limburg'},
+                    {'label': 'Luxemburg', 'value': 'Luxembourg'},
+                    {'label': 'Namen', 'value': 'Namur'},
+                    {'label': 'Oost-Vlaanderen', 'value': 'OostVlaanderen'},
+                    {'label': 'Vlaams-Brabant', 'value': 'VlaamsBrabant'},
+                    {'label': 'West-Vlaanderen', 'value': 'WestVlaanderen'},
+                ],
+                value='Belgium',
+                clearable=False,
+                style={
+                    "width": "200px",
+                    "margin": "auto",
+                    "marginTop": "2rem"
+                }
+            ),
+
+            html.Div([
+
+            ],
+                id="mobility-info-div",
+                style={
+                    "marginTop": "2rem"
+                }
+            ),
+
+            html.Div(
+                id="mobillity-div"
             ),
         ])
 
@@ -902,6 +950,226 @@ def update_province_tests_info(province):
 
     return [div]
 
+@app.callback(
+    Output('mobility-info-div', 'children'),
+    Input('predictions-province', 'value')
+)
+def update_province_tests_info(province):
+    df = pd.read_csv(f'data/filtered_data/MOBILITY.csv')
+    
+    if province == "Belgium":
+        df = df[ df["country_region"] == "Belgium"]
+        print(df["sub_region_2"])
+        df = df[ math.isnan(df["sub_region_2"]) ]
+    else:
+        df = df[ df["sub_region_2"] == province]
+
+
+    retail_and_recreation = df["retail_and_recreation_percent_change_from_baseline"].iloc[-1]
+    grocery_and_pharmacy = df["grocery_and_pharmacy_percent_change_from_baseline"].iloc[-1]
+    parks = df["parks_percent_change_from_baseline"].iloc[-1]
+    transit = df["transit_stations_percent_change_from_baseline"].iloc[-1]
+    workplaces = df["workplaces_percent_change_from_baseline"].iloc[-1]
+    residential = df["residential_percent_change_from_baseline"].iloc[-1]
+
+    div = html.Div([
+        dbc.Row([
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardHeader([
+                        html.P(
+                            ['Retail and recreation change'],
+                            style={
+                                "marginBottom": "0"
+                            }
+                        ),
+                        html.I(
+                            className="fas fa-shopping-bag",
+                            style={
+                                "fontSize": "2rem",
+                                "color": "CornflowerBlue"
+                            }
+                        )
+                    ], style={
+                        "display": "flex",
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "alignItems": "center"
+                    }),
+                    dbc.CardBody([
+                        html.H5(f'{province}', className='card-title'),
+                        html.P(retail_and_recreation, className='card-text')
+                    ])
+                ], style={
+                    "borderLeft": "5px solid CornflowerBlue",
+                }), 
+                width=2
+            ),
+
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardHeader([
+                        html.P(
+                            ['Grocery and pharmacy change'],
+                            style={
+                                "marginBottom": "0"
+                            }
+                        ),
+                        html.I(
+                            className="fas fa-store",
+                            style={
+                                "fontSize": "2rem",
+                                "color": "DarkCyan"
+                            }
+                        )
+                    ], style={
+                        "display": "flex",
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "alignItems": "center"
+                    }),
+                    dbc.CardBody([
+                        html.H5(f'{province}', className='card-title'),
+                        html.P(grocery_and_pharmacy, className='card-text')
+                    ])
+                ], style={
+                    "borderLeft": "5px solid DarkCyan",
+                }), 
+                width=2
+            ),
+
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardHeader([
+                        html.P(
+                            ['Parks change'],
+                            style={
+                                "marginBottom": "0"
+                            }
+                        ),
+                        html.I(
+                            className="fas fa-umbrella-beach",
+                            style={
+                                "fontSize": "2rem",
+                                "color": "green"
+                            }
+                        )
+                    ], style={
+                        "display": "flex",
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "alignItems": "center"
+                    }),
+                    dbc.CardBody([
+                        html.H5(f'{province}', className='card-title'),
+                        html.P(parks, className='card-text')
+                    ])
+                ], style={
+                    "borderLeft": "5px solid green",
+                }), 
+                width=2
+            ),
+
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardHeader([
+                        html.P(
+                            ['Transit change'],
+                            style={
+                                "marginBottom": "0"
+                            }
+                        ),
+                        html.I(
+                            className="fas fa-train",
+                            style={
+                                "fontSize": "2rem",
+                                "color": "darkseagreen"
+                            }
+                        )
+                    ], style={
+                        "display": "flex",
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "alignItems": "center"
+                    }),
+                    dbc.CardBody([
+                        html.H5(f'{province}', className='card-title'),
+                        html.P(transit, className='card-text')
+                    ])
+                ], style={
+                    "borderLeft": "5px solid darkseagreen",
+                }), 
+                width=2
+            ),
+
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardHeader([
+                        html.P(
+                            ['Workplaces change'],
+                            style={
+                                "marginBottom": "0"
+                            }
+                        ),
+                        html.I(
+                            className="fas fa-briefcase",
+                            style={
+                                "fontSize": "2rem",
+                                "color": "darkseagreen"
+                            }
+                        )
+                    ], style={
+                        "display": "flex",
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "alignItems": "center"
+                    }),
+                    dbc.CardBody([
+                        html.H5(f'{province}', className='card-title'),
+                        html.P(transit, className='card-text')
+                    ])
+                ], style={
+                    "borderLeft": "5px solid darkseagreen",
+                }), 
+                width=2
+            ),
+
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardHeader([
+                        html.P(
+                            ['Residential change'],
+                            style={
+                                "marginBottom": "0"
+                            }
+                        ),
+                        html.I(
+                            className="fas fa-home",
+                            style={
+                                "fontSize": "2rem",
+                                "color": "darkseagreen"
+                            }
+                        )
+                    ], style={
+                        "display": "flex",
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "alignItems": "center"
+                    }),
+                    dbc.CardBody([
+                        html.H5(f'{province}', className='card-title'),
+                        html.P(transit, className='card-text')
+                    ])
+                ], style={
+                    "borderLeft": "5px solid darkseagreen",
+                }), 
+                width=2
+            ),
+        ], className="justify-content-center m-0")
+    ])
+
+    return [div]
+
 
 ###############################
 ###                         ###
@@ -922,7 +1190,7 @@ def update_province_active(province):
         rows=1,
         cols=1,
         subplot_titles=(
-            'Actieve infecties',
+            'Active infections',
         )
     )
 
@@ -952,8 +1220,8 @@ def update_province_cases(province):
         rows=1, 
         cols=2,
         subplot_titles=(
-            'Nieuwe besmettingen per dag',
-            'Cumulatief aantal besmettingen'
+            'New infections',
+            'Total infections'
         )
     )
 
@@ -995,8 +1263,8 @@ def update_province_recovered(province):
         rows=1, 
         cols=2,
         subplot_titles=(
-            'Nieuwe recoveries per dag',
-            'Cumulatief aantal recoveries'
+            'New recoveries',
+            'Total recovered'
         )
     )
 
@@ -1039,8 +1307,8 @@ def update_province_deaths(province):
             rows=1, 
             cols=2,
             subplot_titles=(
-                'Nieuwe sterftegevallen per dag',
-                'Cumulatief aantal doden'
+                'New deaths',
+                'Total deaths'
             )
         )
 
@@ -1087,12 +1355,24 @@ def update_province_deaths(province):
 def update_province_predictions(province):
     df = pd.read_csv(f'data/resulted_data/neural_network/{province}/pred_all.csv')
     df['Data'] = pd.to_datetime(df['Data']).dt.strftime('%Y-%m-%d')
+    last_training_day = df[ df['Used in Train'] == True].iloc[-1]['Data']
+    last_training_day = datetime.strptime(last_training_day, '%Y-%m-%d')
+    last_training_day_epoch = last_training_day.timestamp()*1000
+    first_training_day = df[ df['Used in Train'] == True].iloc[0]['Data']
+    first_training_day = datetime.strptime(first_training_day, '%Y-%m-%d')
+
+    test_df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    test_df = test_df[ test_df["REGION"] == province ]
+    test_df["DATE"] = pd.to_datetime(test_df["DATE"])
+    test_df = test_df[ test_df["DATE"] >= first_training_day]
+    test_df = test_df[ test_df["DATE"] <= last_training_day]
+
     fig1 = make_subplots(
         rows=1,
         cols=2,
         subplot_titles=(
-            'Actieve infecties',
-            'Aantal recovered',
+            'Active infections',
+            'Total recovered',
         )
     )
 
@@ -1109,6 +1389,17 @@ def update_province_predictions(province):
 
     fig1.add_trace(
         go.Scatter(
+            x=test_df["DATE"],
+            y=test_df["ACTIVE_CASES"],
+            mode='lines',
+            line=dict(color='black', dash='dot'),
+            name=""
+        ),
+        row=1, col=1
+    )
+
+    fig1.add_trace(
+        go.Scatter(
             x=df['Data'], 
             y=df['Recovered'],
             mode='lines',
@@ -1118,11 +1409,36 @@ def update_province_predictions(province):
         row=1, col=2
     )
 
+    if province == "Belgium":
+        fig1.add_trace(
+            go.Scatter(
+                x=test_df["DATE"],
+                y=test_df["CUMULATIVE_RECOVERED"] + test_df["CUMULATIVE_DEATHS"],
+                mode='lines',
+                line=dict(color='black', dash='dot'),
+                name=""
+            ),
+            row=1, col=2
+        )
+    else:
+        fig1.add_trace(
+            go.Scatter(
+                x=test_df["DATE"],
+                y=test_df["CUMULATIVE_RECOVERED"],
+                mode='lines',
+                line=dict(color='black', dash='dot'),
+                name=""
+            ),
+            row=1, col=2
+        )
+
+    fig1.add_vline(x=last_training_day_epoch, line_dash="dash", annotation_text="End of training", annotation_position="bottom right", annotation_font_size=16)
+
     fig2 = make_subplots(
         rows=1,
         cols=1,
         subplot_titles=(
-            'Reproductie cijfer',
+            'Reproduction factor',
         )
     )
 
@@ -1135,6 +1451,8 @@ def update_province_predictions(province):
         ),
         row=1, col=1
     )
+
+    fig2.add_vline(x=last_training_day_epoch, line_dash="dash", annotation_text="End of training", annotation_position="bottom right", annotation_font_size=16)
 
     fig1.update_layout(hovermode='x unified', showlegend=False)
     fig2.update_layout(hovermode='x unified')
@@ -1161,8 +1479,8 @@ def update_province_hospitalisations(province):
         rows=1,
         cols=2,
         subplot_titles=(
-            'Mensen in ICU',
-            'Aantal nieuwe opnames',
+            'Total in ICU',
+            'New hospitalisations',
         )
     )
 
@@ -1212,8 +1530,8 @@ def update_province_tests(province):
         rows=1,
         cols=2,
         subplot_titles=(
-            'Aantal afgenomen testen',
-            'Aantal positieve testen',
+            'New tests',
+            'New positive tests',
         )
     )
 
