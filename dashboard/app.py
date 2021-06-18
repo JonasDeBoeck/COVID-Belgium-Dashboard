@@ -10,6 +10,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 from dash_html_components.Div import Div
 from dash_html_components.Span import Span
+from dash_html_components.Title import Title
 import dash_table
 from numpy.core.numeric import NaN
 import dash_bootstrap_components as dbc
@@ -36,6 +37,7 @@ app.layout = html.Div([
         dcc.Tab(label='Hospitalisations', value='hospitalisations'),
         dcc.Tab(label='Tests', value='tests'),
         dcc.Tab(label='Mobility', value='mobility'),
+        dcc.Tab(label='About', value='about'),
     ]),
     html.Div(id='tabs-content')
 ])
@@ -175,9 +177,9 @@ def render_content(tab):
                         html.Div([
                             html.H3('Clustering results', className="h3"),
                             html.Article([
-                                html.P('The map on the left shows the country of Belgium and it\'s provinces. \n', style={'margin': '5px', 'marginLeft': '0px'}),
-                                html.P('The provinces are color-coded accordin to their cluster.', style={'margin': '5px', 'marginLeft': '0px'}),
-                                html.P('Hover over a specific province to see it\'s statistics.', style={'margin': '5px', 'marginLeft': '0px'}),
+                                html.P('The map on the left shows Belgium and its provinces.', style={'margin': '5px', 'marginLeft': '0px'}),
+                                html.P('The provinces are color-coded according to their cluster.', style={'margin': '5px', 'marginLeft': '0px'}),
+                                html.P('Hover over a specific province to see its statistics.', style={'margin': '5px', 'marginLeft': '0px'}),
                                 html.P('In the table below the values of the representatives of each cluster are presented.', style={'margin': '5px', 'marginBottom': '10px', 'marginLeft': '0px'}),
                             ])
                         ]),
@@ -311,10 +313,20 @@ def render_content(tab):
             ),
 
             html.Div(
-                id="mobillity-div"
+                id="mobility-div"
             ),
         ])
+    elif tab == 'about':
+        return html.Div([
+            html.Div([
 
+            ],
+                id="about-info-div",
+                style={
+                    "marginTop": "2rem"
+                }
+            ),
+        ])
 
 ##########################
 ###                    ###
@@ -842,7 +854,7 @@ def update_province_tests_info(province):
                     }),
                     dbc.CardBody([
                         html.H5(f'{province}', className='card-title'),
-                        html.P(total_tests, className='card-text')
+                        html.P(new_tests, className='card-text')
                     ])
                 ], style={
                     "borderLeft": "5px solid CornflowerBlue",
@@ -906,7 +918,7 @@ def update_province_tests_info(province):
                     }),
                     dbc.CardBody([
                         html.H5(f'{province}', className='card-title'),
-                        html.P(total_positive_tests, className='card-text')
+                        html.P(new_positive, className='card-text')
                     ])
                 ], style={
                     "borderLeft": "5px solid green",
@@ -959,8 +971,12 @@ def update_province_tests_info(province):
     
     if province == "Belgium":
         df = df[ df["country_region"] == "Belgium"]
-        print(df["sub_region_2"])
-        df = df[ math.isnan(df["sub_region_2"]) ]
+        mask = pd.isnull(df["sub_region_2"])
+        df = df[mask]
+        mask = pd.isnull(df["sub_region_1"])
+        df = df[mask]
+    elif province == "Brussels":
+        df = df[ df["sub_region_1"] == "Brussels"]
     else:
         df = df[ df["sub_region_2"] == province]
 
@@ -978,7 +994,7 @@ def update_province_tests_info(province):
                 dbc.Card([
                     dbc.CardHeader([
                         html.P(
-                            ['Retail and recreation change'],
+                            ['Retail and recreation'],
                             style={
                                 "marginBottom": "0"
                             }
@@ -1010,7 +1026,7 @@ def update_province_tests_info(province):
                 dbc.Card([
                     dbc.CardHeader([
                         html.P(
-                            ['Grocery and pharmacy change'],
+                            ['Grocery and pharmacy'],
                             style={
                                 "marginBottom": "0"
                             }
@@ -1019,7 +1035,7 @@ def update_province_tests_info(province):
                             className="fas fa-store",
                             style={
                                 "fontSize": "2rem",
-                                "color": "DarkCyan"
+                                "color": "orange"
                             }
                         )
                     ], style={
@@ -1033,7 +1049,7 @@ def update_province_tests_info(province):
                         html.P(grocery_and_pharmacy, className='card-text')
                     ])
                 ], style={
-                    "borderLeft": "5px solid DarkCyan",
+                    "borderLeft": "5px solid orange",
                 }), 
                 width=2
             ),
@@ -1042,7 +1058,7 @@ def update_province_tests_info(province):
                 dbc.Card([
                     dbc.CardHeader([
                         html.P(
-                            ['Parks change'],
+                            ['Parks'],
                             style={
                                 "marginBottom": "0"
                             }
@@ -1074,7 +1090,7 @@ def update_province_tests_info(province):
                 dbc.Card([
                     dbc.CardHeader([
                         html.P(
-                            ['Transit change'],
+                            ['Transit'],
                             style={
                                 "marginBottom": "0"
                             }
@@ -1083,7 +1099,7 @@ def update_province_tests_info(province):
                             className="fas fa-train",
                             style={
                                 "fontSize": "2rem",
-                                "color": "darkseagreen"
+                                "color": "red"
                             }
                         )
                     ], style={
@@ -1097,7 +1113,7 @@ def update_province_tests_info(province):
                         html.P(transit, className='card-text')
                     ])
                 ], style={
-                    "borderLeft": "5px solid darkseagreen",
+                    "borderLeft": "5px solid red",
                 }), 
                 width=2
             ),
@@ -1106,7 +1122,7 @@ def update_province_tests_info(province):
                 dbc.Card([
                     dbc.CardHeader([
                         html.P(
-                            ['Workplaces change'],
+                            ['Workplaces'],
                             style={
                                 "marginBottom": "0"
                             }
@@ -1115,7 +1131,7 @@ def update_province_tests_info(province):
                             className="fas fa-briefcase",
                             style={
                                 "fontSize": "2rem",
-                                "color": "darkseagreen"
+                                "color": "darkviolet"
                             }
                         )
                     ], style={
@@ -1126,10 +1142,10 @@ def update_province_tests_info(province):
                     }),
                     dbc.CardBody([
                         html.H5(f'{province}', className='card-title'),
-                        html.P(transit, className='card-text')
+                        html.P(workplaces, className='card-text')
                     ])
                 ], style={
-                    "borderLeft": "5px solid darkseagreen",
+                    "borderLeft": "5px solid darkviolet",
                 }), 
                 width=2
             ),
@@ -1138,7 +1154,7 @@ def update_province_tests_info(province):
                 dbc.Card([
                     dbc.CardHeader([
                         html.P(
-                            ['Residential change'],
+                            ['Residential'],
                             style={
                                 "marginBottom": "0"
                             }
@@ -1147,7 +1163,7 @@ def update_province_tests_info(province):
                             className="fas fa-home",
                             style={
                                 "fontSize": "2rem",
-                                "color": "darkseagreen"
+                                "color": "deeppink"
                             }
                         )
                     ], style={
@@ -1158,10 +1174,10 @@ def update_province_tests_info(province):
                     }),
                     dbc.CardBody([
                         html.H5(f'{province}', className='card-title'),
-                        html.P(transit, className='card-text')
+                        html.P(residential, className='card-text')
                     ])
                 ], style={
-                    "borderLeft": "5px solid darkseagreen",
+                    "borderLeft": "5px solid deeppink",
                 }), 
                 width=2
             ),
@@ -1206,6 +1222,9 @@ def update_province_active(province):
 
     fig.update_layout(hovermode="x unified")
 
+    fig.update_xaxes(title_text="Date", row=1, col=1)
+    fig.update_yaxes(title_text="Active infections", row=1, col=1)
+
     return [dcc.Graph(figure=fig)]
 
 @app.callback(
@@ -1248,6 +1267,12 @@ def update_province_cases(province):
     )
 
     fig.update_layout(hovermode="x unified", showlegend=False)
+
+    fig.update_xaxes(title_text="Date", row=1, col=1)
+    fig.update_yaxes(title_text="New infections", row=1, col=1)
+
+    fig.update_xaxes(title_text="Date", row=1, col=2)
+    fig.update_yaxes(title_text="Total infections", row=1, col=2)
 
     return [dcc.Graph(figure=fig)]
 
@@ -1292,6 +1317,12 @@ def update_province_recovered(province):
 
     fig.update_layout(hovermode="x unified", showlegend=False)
 
+    fig.update_xaxes(title_text="Date", row=1, col=1)
+    fig.update_yaxes(title_text="New recoveries", row=1, col=1)
+
+    fig.update_xaxes(title_text="Date", row=1, col=2)
+    fig.update_yaxes(title_text="Total recoveries", row=1, col=2)
+
     return [dcc.Graph(figure=fig)]
 
 @app.callback(
@@ -1335,6 +1366,12 @@ def update_province_deaths(province):
         )
 
         fig.update_layout(hovermode="x unified", showlegend=False)
+
+        fig.update_xaxes(title_text="Date", row=1, col=1)
+        fig.update_yaxes(title_text="New deaths", row=1, col=1)
+
+        fig.update_xaxes(title_text="Date", row=1, col=2)
+        fig.update_yaxes(title_text="Total deaths", row=1, col=2)
 
         return [dcc.Graph(figure=fig)]
     else:
@@ -1457,6 +1494,14 @@ def update_province_predictions(province):
     fig1.update_layout(hovermode='x unified', showlegend=False)
     fig2.update_layout(hovermode='x unified')
 
+    fig1.update_xaxes(title_text="Date", row=1, col=1)
+    fig1.update_yaxes(title_text="Active infections", row=1, col=1)
+    fig1.update_xaxes(title_text="Date", row=1, col=2)
+    fig1.update_yaxes(title_text="Total recovered", row=1, col=2)
+
+    fig2.update_xaxes(title_text="Date", row=1, col=1)
+    fig2.update_yaxes(title_text="Reproduction factor", row=1, col=1)
+
     return [dcc.Graph(figure=fig1), dcc.Graph(figure=fig2)]
 
 
@@ -1505,6 +1550,11 @@ def update_province_hospitalisations(province):
         ),
         row=1, col=2
     )
+
+    fig.update_xaxes(title_text="Date", row=1, col=1)
+    fig.update_yaxes(title_text="Total in ICU", row=1, col=1)
+    fig.update_xaxes(title_text="Date", row=1, col=2)
+    fig.update_yaxes(title_text="New Hospitalisations", row=1, col=2)
 
     fig.update_layout(hovermode='x unified', showlegend=False)
 
@@ -1559,7 +1609,152 @@ def update_province_tests(province):
 
     fig.update_layout(hovermode='x unified', showlegend=False)
 
+    fig.update_xaxes(title_text="Date", row=1, col=1)
+    fig.update_yaxes(title_text="New tests", row=1, col=1)
+    fig.update_xaxes(title_text="Date", row=1, col=2)
+    fig.update_yaxes(title_text="New ositive tests", row=1, col=2)
+
     return [dcc.Graph(figure=fig)]
 
+
+##################################
+###                            ###
+### CALLBACKS FOR MOBILITY TAB ###
+###                            ###
+##################################
+
+
+@app.callback(
+    Output('mobility-div', 'children'),
+    Input('predictions-province', 'value')
+)
+def update_province_mobility(province):
+    df = pd.read_csv(f'data/filtered_data/MOBILITY.csv')
+    
+    if province == "Belgium":
+        df = df[ df["country_region"] == "Belgium"]
+        mask = pd.isnull(df["sub_region_2"])
+        df = df[mask]
+        mask = pd.isnull(df["sub_region_1"])
+        df = df[mask]
+    elif province == "Brussels":
+        df = df[ df["sub_region_1"] == "Brussels"]
+    else:
+        df = df[ df["sub_region_2"] == province]
+
+    fig1 = make_subplots(
+        rows=1,
+        cols=2,
+        subplot_titles=(
+            'Retail and recreation change',
+            'Grocery and pharmacy change',
+        )
+    )
+
+    fig2 = make_subplots(
+        rows=1,
+        cols=2,
+        subplot_titles=(
+            'Parks change',
+            'Transit change',
+        )
+    )
+
+    fig3 = make_subplots(
+        rows=1,
+        cols=2,
+        subplot_titles=(
+            'Workplaces change',
+            'Residential change',
+        )
+    )
+
+    fig1.add_trace(
+        go.Scatter(
+            x=df['date'], 
+            y=df['retail_and_recreation_percent_change_from_baseline'],
+            mode='lines',
+            line=dict(color='CornflowerBlue'),
+            name=""
+        ),
+        row=1, col=1
+    )
+
+    fig1.add_trace(
+        go.Scatter(
+            x=df['date'], 
+            y=df['grocery_and_pharmacy_percent_change_from_baseline'],
+            mode='lines',
+            line=dict(color='orange'),
+            name=""
+        ),
+        row=1, col=2
+    )
+
+    fig2.add_trace(
+        go.Scatter(
+            x=df['date'], 
+            y=df['parks_percent_change_from_baseline'],
+            mode='lines',
+            line=dict(color='Green'),
+            name=""
+        ),
+        row=1, col=1
+    )
+
+    fig2.add_trace(
+        go.Scatter(
+            x=df['date'], 
+            y=df['transit_stations_percent_change_from_baseline'],
+            mode='lines',
+            line=dict(color='red'),
+            name=""
+        ),
+        row=1, col=2
+    )
+
+    fig3.add_trace(
+        go.Scatter(
+            x=df['date'], 
+            y=df['workplaces_percent_change_from_baseline'],
+            mode='lines',
+            line=dict(color='darkviolet'),
+            name=""
+        ),
+        row=1, col=1
+    )
+
+    fig3.add_trace(
+        go.Scatter(
+            x=df['date'], 
+            y=df['residential_percent_change_from_baseline'],
+            mode='lines',
+            line=dict(color='deeppink'),
+            name=""
+        ),
+        row=1, col=2
+    )
+
+    fig1.update_layout(hovermode='x unified', showlegend=False)
+    fig2.update_layout(hovermode='x unified', showlegend=False)
+    fig3.update_layout(hovermode='x unified', showlegend=False)
+
+    fig1.update_xaxes(title_text="Date", row=1, col=1)
+    fig1.update_yaxes(title_text="Percentage change", row=1, col=1)
+    fig1.update_xaxes(title_text="Date", row=1, col=2)
+    fig1.update_yaxes(title_text="Percentage changes", row=1, col=2)
+
+    fig2.update_xaxes(title_text="Date", row=1, col=1)
+    fig2.update_yaxes(title_text="Percentage change", row=1, col=1)
+    fig2.update_xaxes(title_text="Date", row=1, col=2)
+    fig2.update_yaxes(title_text="Percentage changes", row=1, col=2)
+
+    fig3.update_xaxes(title_text="Date", row=1, col=1)
+    fig3.update_yaxes(title_text="Percentage change", row=1, col=1)
+    fig3.update_xaxes(title_text="Date", row=1, col=2)
+    fig3.update_yaxes(title_text="Percentage changes", row=1, col=2)
+
+    return [html.Div([dcc.Graph(figure=fig1), dcc.Graph(figure=fig2), dcc.Graph(figure=fig3)])]
+
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
