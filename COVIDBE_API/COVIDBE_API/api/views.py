@@ -104,8 +104,17 @@ def mobility(request, region: str = None):
     with open(f"data\\filtered_data\MOBILITY.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row["country_region"].lower() == region.lower():
-                row_data = {"DATE": row["date"], "REGION": row["country_region"], "RETAIL": row["retail_and_recreation_percent_change_from_baseline"],
+            check = row["sub_region_2"].replace(" ", "").lower()
+            if check == region.lower():
+                row_data = {"DATE": row["date"], "SUBREGION": row["sub_region_2"], "RETAIL": row["retail_and_recreation_percent_change_from_baseline"],
+                "GROCERY": row["grocery_and_pharmacy_percent_change_from_baseline"], "PARKS": row["parks_percent_change_from_baseline"],
+                "TRANSIT": row["transit_stations_percent_change_from_baseline"], "WORKPLACE": row["workplaces_percent_change_from_baseline"], 
+                "RESIDENTIAL": row["residential_percent_change_from_baseline"]}
+                data.append(row_data)
+
+            if region.lower() == "belgium":
+                if row["sub_region_1"] == "":
+                    row_data = {"DATE": row["date"], "REGION": row["country_region"], "RETAIL": row["retail_and_recreation_percent_change_from_baseline"],
                 "GROCERY": row["grocery_and_pharmacy_percent_change_from_baseline"], "PARKS": row["parks_percent_change_from_baseline"],
                 "TRANSIT": row["transit_stations_percent_change_from_baseline"], "WORKPLACE": row["workplaces_percent_change_from_baseline"], 
                 "RESIDENTIAL": row["residential_percent_change_from_baseline"]}
