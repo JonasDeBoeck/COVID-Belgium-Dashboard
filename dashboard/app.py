@@ -4,6 +4,7 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 from os import name
+import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -22,12 +23,20 @@ from urllib.request import urlopen
 import json
 from datetime import date, datetime, timedelta
 import math
+import re
 
 from plotly.subplots import make_subplots
 
 external_stylesheets = [dbc.themes.BOOTSTRAP, "https://use.fontawesome.com/releases/v5.15.3/css/all.css"]
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True, title="COVID-19 Statistics Belgium", update_title='Loading...')
+
+server = app.server
+
+wdir = os.getcwd()
+wdir = re.sub(r'dashboard', '', wdir)
+print(wdir)
+
 
 app.layout = html.Div([
     dcc.Tabs(id='tabs', value='cases', children=[
@@ -42,7 +51,7 @@ app.layout = html.Div([
     html.Div(id='tabs-content')
 ])
 
-df = pd.read_csv("data/resulted_data/kmeans/CLUSTER_PROVINCES.csv")
+df = pd.read_csv(f'{wdir}data/resulted_data/kmeans/CLUSTER_PROVINCES.csv')
 df = df.rename(columns={"PROVINCE": "Provincie", "INFECTION_RATE": "Infectie graad", "HOSPITALISATION_RATE": "Hospitalisatie graad", "TEST_POS_PERCENTAGE": "Percentage positieve testen", "CLUSTER": "Cluster"})
 df = df.astype({"Cluster": "int32"})
 
@@ -58,7 +67,7 @@ cluster_be = px.choropleth(df, geojson=be, locations="Provincie", featureidkey="
 cluster_be.update_geos(fitbounds="locations", visible=False)
 cluster_be.update_layout(dragmode=False, coloraxis_showscale=False)
 
-cluster_metadata = pd.read_csv('data/resulted_data/kmeans/CLUSTER_METADATA.csv')
+cluster_metadata = pd.read_csv(f'{wdir}data/resulted_data/kmeans/CLUSTER_METADATA.csv')
 cluster_metadata = round(cluster_metadata, 2)
 cluster_metadata = cluster_metadata.rename(columns={"CLUSTER": "Cluster", "INFECTION_RATE": "Infection rate", "HOSPITALISATION_RATE": "Hospitalisation rate", "TEST_POS_PERCENTAGE": "Percentage of positive tests"})
 
@@ -340,7 +349,7 @@ def render_content(tab):
     Input('predictions-province', 'value')
 )
 def update_province_general_info(province):
-    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
     df = df[ df['REGION'] == province ]
 
     if province == "Belgium":
@@ -591,7 +600,7 @@ def update_province_general_info(province):
     Input('predictions-province', 'value')
 )
 def update_province_predictions_info(province):
-    df = pd.read_csv(f'data/resulted_data/neural_network/{province}/pred_all.csv')
+    df = pd.read_csv(f'{wdir}data/resulted_data/neural_network/{province}/pred_all.csv')
     df["Data"] = pd.to_datetime(df["Data"]).dt.date
     days_trained = df[ df['Used in Train'] == True]
     days_trained = len(days_trained)
@@ -706,7 +715,7 @@ def update_province_predictions_info(province):
     Input('predictions-province', 'value')
 )
 def update_province_hospitalisations_info(province):
-    df = pd.read_csv(f'data/filtered_data/HOSP.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/HOSP.csv')
     df = df[ df['REGION'] == province ]
 
     total_in_icu = df['TOTAL_IN_ICU'].iloc[-1]
@@ -820,7 +829,7 @@ def update_province_hospitalisations_info(province):
     Input('predictions-province', 'value')
 )
 def update_province_tests_info(province):
-    df = pd.read_csv(f'data/filtered_data/TESTS.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/TESTS.csv')
     df = df[ df['REGION'] == province ]
 
     total_tests = df['TESTS_ALL'].sum()
@@ -967,7 +976,7 @@ def update_province_tests_info(province):
     Input('predictions-province', 'value')
 )
 def update_province_tests_info(province):
-    df = pd.read_csv(f'data/filtered_data/MOBILITY.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/MOBILITY.csv')
     
     if province == "Belgium":
         df = df[ df["country_region"] == "Belgium"]
@@ -1199,7 +1208,7 @@ def update_province_tests_info(province):
     Input('predictions-province', 'value')
 )
 def update_province_active(province):
-    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
     df = df[ df["REGION"] == province ]
 
     fig = make_subplots(
@@ -1232,7 +1241,7 @@ def update_province_active(province):
     Input('predictions-province', 'value')
 )
 def update_province_cases(province):
-    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
     df = df[ df["REGION"] == province ]
 
     fig = make_subplots(
@@ -1281,7 +1290,7 @@ def update_province_cases(province):
     Input('predictions-province', 'value')
 )
 def update_province_recovered(province):
-    df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
     df = df[ df["REGION"] == province ]
     
     fig = make_subplots(
@@ -1331,7 +1340,7 @@ def update_province_recovered(province):
 )
 def update_province_deaths(province):
     if province == "Belgium":
-        df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+        df = pd.read_csv(f'{wdir}data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
         df = df[ df["REGION"] == province ]
 
         fig = make_subplots(
@@ -1390,7 +1399,7 @@ def update_province_deaths(province):
     Input('predictions-province', 'value')
 )
 def update_province_predictions(province):
-    df = pd.read_csv(f'data/resulted_data/neural_network/{province}/pred_all.csv')
+    df = pd.read_csv(f'{wdir}data/resulted_data/neural_network/{province}/pred_all.csv')
     df['Data'] = pd.to_datetime(df['Data']).dt.strftime('%Y-%m-%d')
     last_training_day = df[ df['Used in Train'] == True].iloc[-1]['Data']
     last_training_day = datetime.strptime(last_training_day, '%Y-%m-%d')
@@ -1398,7 +1407,7 @@ def update_province_predictions(province):
     first_training_day = df[ df['Used in Train'] == True].iloc[0]['Data']
     first_training_day = datetime.strptime(first_training_day, '%Y-%m-%d')
 
-    test_df = pd.read_csv(f'data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
+    test_df = pd.read_csv(f'{wdir}data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv')
     test_df = test_df[ test_df["REGION"] == province ]
     test_df["DATE"] = pd.to_datetime(test_df["DATE"])
     test_df = test_df[ test_df["DATE"] >= first_training_day]
@@ -1517,7 +1526,7 @@ def update_province_predictions(province):
     Input('predictions-province', 'value')
 )
 def update_province_hospitalisations(province):
-    df = pd.read_csv(f'data/filtered_data/HOSP.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/HOSP.csv')
     df = df[ df["REGION"] == province ]
 
     fig = make_subplots(
@@ -1573,7 +1582,7 @@ def update_province_hospitalisations(province):
     Input('predictions-province', 'value')
 )
 def update_province_tests(province):
-    df = pd.read_csv(f'data/filtered_data/TESTS.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/TESTS.csv')
     df = df[ df["REGION"] == province ]
 
     fig = make_subplots(
@@ -1629,7 +1638,7 @@ def update_province_tests(province):
     Input('predictions-province', 'value')
 )
 def update_province_mobility(province):
-    df = pd.read_csv(f'data/filtered_data/MOBILITY.csv')
+    df = pd.read_csv(f'{wdir}data/filtered_data/MOBILITY.csv')
     
     if province == "Belgium":
         df = df[ df["country_region"] == "Belgium"]
