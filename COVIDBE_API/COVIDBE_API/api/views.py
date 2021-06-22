@@ -6,12 +6,17 @@ from rest_framework.settings import api_settings
 import pandas as pd
 import csv
 import json
+import os
+import re
+
+wdir = os.getcwd()
+wdir = re.sub(r'COVIDBE_API', '', wdir)
 
 # Create your views here.
 @api_view(('GET',))
 def kmeans_results(request):
     data = {}
-    with open("/root/COVID-Belgium-Dashboard/data/resulted_data/kmeans/CLUSTER_METADATA.csv") as f:
+    with open(f"{wdir}/data/resulted_data/kmeans/CLUSTER_METADATA.csv") as f:
         reader = csv.DictReader(f)
         metadata = []
         for row in reader:
@@ -21,7 +26,7 @@ def kmeans_results(request):
 
         data["METADATA"] = metadata
 
-    with open("/root/COVID-Belgium-Dashboard/data/resulted_data/kmeans/CLUSTER_PROVINCES.csv", encoding="utf-8") as f:
+    with open(f"{wdir}/data/resulted_data/kmeans/CLUSTER_PROVINCES.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         province_data = []
         for row in reader: 
@@ -39,7 +44,7 @@ def kmeans_results(request):
 def cases(request, region: str = None):
     data = []
 
-    with open("/root/COVID-Belgium-Dashboard/data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv", encoding="utf-8") as f:
+    with open(f"{wdir}/data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["REGION"].lower() == region.lower():
@@ -57,7 +62,7 @@ def cases(request, region: str = None):
 def hospitalisations(request, region: str = None):
     data = []
 
-    with open("/root/COVID-Belgium-Dashboard/data/filtered_data/HOSP.csv", encoding="utf-8") as f:
+    with open(f"{wdir}/data/filtered_data/HOSP.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["REGION"].lower() == region.lower():
@@ -71,7 +76,7 @@ def hospitalisations(request, region: str = None):
 def tests(request, region: str = None):
     data = []
 
-    with open("/root/COVID-Belgium-Dashboard/data/filtered_data/TESTS.csv", encoding="utf-8") as f:
+    with open(f"{wdir}/data/filtered_data/TESTS.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["REGION"].lower() == region.lower():
@@ -85,7 +90,7 @@ def tests(request, region: str = None):
 def predictions(request, region: str = None):
     data = []
 
-    with open(f"/root/COVID-Belgium-Dashboard/data/resulted_data/neural_network/{region}/pred_all.csv", encoding="utf-8") as f:
+    with open(f"{wdir}/data/resulted_data/neural_network/{region}/pred_all.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["SP-Subregião"].lower() == region.lower():
@@ -101,7 +106,7 @@ def predictions(request, region: str = None):
 def mobility(request, region: str = None):
     data = []
 
-    with open(f"/root/COVID-Belgium-Dashboard/data/filtered_data/MOBILITY.csv", encoding="utf-8") as f:
+    with open(f"{wdir}/data/filtered_data/MOBILITY.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             check = row["sub_region_2"].replace(" ", "").lower()
