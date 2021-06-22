@@ -1,10 +1,10 @@
 import pandas as pd
 from datetime import date
 
-cases_df = pd.read_csv("data\\filtered_data\CASES_RECOVERED_DEATHS_ACTIVE.csv")
-hosp_df = pd.read_csv("data\\filtered_data\HOSP.csv")
-tests_df = pd.read_csv("data\\filtered_data\TESTS.csv")
-metadata_df = pd.read_csv("data\\filtered_data\METADATA.csv")
+cases_df = pd.read_csv("data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv")
+hosp_df = pd.read_csv("data/filtered_data/HOSP.csv")
+tests_df = pd.read_csv("data/filtered_data/TESTS.csv")
+metadata_df = pd.read_csv("data/filtered_data/METADATA.csv")
 
 current_month = date.today().month 
 if current_month == 1:
