@@ -1,3 +1,7 @@
+echo "Activating virtual environment"
+source env/bin/activate
+echo "Virtual environment activated"
+
 echo "Fetching sciensano data"
 python3 data_fetch/sciensano/sciensano.py
 echo "Fetched sciensano data"
@@ -29,3 +33,7 @@ echo "Finished kmeans"
 echo "Running neural network"
 python3 algorithms/neural_network/script.py
 echo "Finished running neural network"
+
+echo "Deactivating virtual environment"
+deactivate
+echo "Virtual environment deactivated"
