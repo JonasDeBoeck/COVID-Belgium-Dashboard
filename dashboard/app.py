@@ -1472,7 +1472,7 @@ def update_province_predictions(province):
                 y=test_df["CUMULATIVE_RECOVERED"],
                 mode='lines',
                 line=dict(color='black', dash='dot'),
-                name=""
+                name="Measured"
             ),
             row=1, col=2
         )
