@@ -35,7 +35,6 @@ server = app.server
 
 wdir = os.getcwd()
 wdir = re.sub(r'dashboard', '', wdir)
-print(wdir)
 
 
 app.layout = html.Div([
