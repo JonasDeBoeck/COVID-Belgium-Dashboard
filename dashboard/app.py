@@ -50,26 +50,6 @@ app.layout = html.Div([
     html.Div(id='tabs-content')
 ])
 
-df = pd.read_csv(f'{wdir}data/resulted_data/kmeans/CLUSTER_PROVINCES.csv')
-df = df.rename(columns={"PROVINCE": "Provincie", "INFECTION_RATE": "Infectie graad", "HOSPITALISATION_RATE": "Hospitalisatie graad", "TEST_POS_PERCENTAGE": "Percentage positieve testen", "CLUSTER": "Cluster"})
-df = df.astype({"Cluster": "int32"})
-
-df["Cluster"] += 1
-df = df.round(2)
-with open('geojson.json', encoding="utf-8") as file:
-    be = json.load(file)
-
-be = rewind(be, rfc7946=False)
-
-cluster_be = px.choropleth(df, geojson=be, locations="Provincie", featureidkey="properties.NameDUT", projection="mercator", color="Cluster", hover_data=["Provincie", "Infectie graad", "Hospitalisatie graad", "Percentage positieve testen", "Cluster"], height=800, color_continuous_scale="ylorrd")
-
-cluster_be.update_geos(fitbounds="locations", visible=False)
-cluster_be.update_layout(dragmode=False, coloraxis_showscale=False)
-
-cluster_metadata = pd.read_csv(f'{wdir}data/resulted_data/kmeans/CLUSTER_METADATA.csv')
-cluster_metadata = round(cluster_metadata, 2)
-cluster_metadata = cluster_metadata.rename(columns={"CLUSTER": "Cluster", "INFECTION_RATE": "Infection rate", "HOSPITALISATION_RATE": "Hospitalisation rate", "TEST_POS_PERCENTAGE": "Percentage of positive tests"})
-
 @app.callback(
     Output('tabs-content', 'children'),
     Input('tabs', 'value')
@@ -168,6 +148,26 @@ def render_content(tab):
             ),
         ])
     elif tab == 'clustering':
+        df = pd.read_csv(f'{wdir}data/resulted_data/kmeans/CLUSTER_PROVINCES.csv')
+        df = df.rename(columns={"PROVINCE": "Provincie", "INFECTION_RATE": "Infectie graad", "HOSPITALISATION_RATE": "Hospitalisatie graad", "TEST_POS_PERCENTAGE": "Percentage positieve testen", "CLUSTER": "Cluster"})
+        df = df.astype({"Cluster": "int32"})
+
+        df["Cluster"] += 1
+        df = df.round(2)
+        with open('geojson.json', encoding="utf-8") as file:
+            be = json.load(file)
+
+        be = rewind(be, rfc7946=False)
+
+        cluster_be = px.choropleth(df, geojson=be, locations="Provincie", featureidkey="properties.NameDUT", projection="mercator", color="Cluster", hover_data=["Provincie", "Infectie graad", "Hospitalisatie graad", "Percentage positieve testen", "Cluster"], height=800, color_continuous_scale="ylorrd")
+
+        cluster_be.update_geos(fitbounds="locations", visible=False)
+        cluster_be.update_layout(dragmode=False, coloraxis_showscale=False)
+
+        cluster_metadata = pd.read_csv(f'{wdir}data/resulted_data/kmeans/CLUSTER_METADATA.csv')
+        cluster_metadata = round(cluster_metadata, 2)
+        cluster_metadata = cluster_metadata.rename(columns={"CLUSTER": "Cluster", "INFECTION_RATE": "Infection rate", "HOSPITALISATION_RATE": "Hospitalisation rate", "TEST_POS_PERCENTAGE": "Percentage of positive tests"})
+
         return html.Div([
 
             dbc.Row([
