@@ -18,8 +18,6 @@ for province in province_metadata.itertuples():
 
     province_data = province_data.rename(columns={"DATE": "Data", "ACTIVE_CASES": "At", "CUMULATIVE_RECOVERED": "Rt", "CUMULATIVE_DEATHS": "Óbitos", "CUMULATIVE_CASES": "Confirmados"})
     province_data = province_data.iloc[-33:-2]
-    print(province_data)
-    print(province_data)
     for dLen in range(start_day, end_day):
         ds = province_data[["At"]]
         ini = ds[ds["At"] > 0]
