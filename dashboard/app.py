@@ -361,8 +361,8 @@ def render_content(tab):
                     html.P(["This dashboard is a result from a research done in collaboration with São Paulo State University (UNESP)"], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'}),
                     html.P([
                         "Some information about the data can be found on this page, for a more detailed explication about our methodologies please refer to the paper of the research. Download the paper ",
-                        html.A(["here"])
-                        ], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'})
+                        html.A(["here"], href=f"./assets/AssessingCovid19CasesBelgium.pdf", download=True),
+                        "."], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'})
                 ]),
 
                 dbc.Row([
@@ -480,8 +480,8 @@ def render_content(tab):
                     html.H5([
                         "Sources"
                     ]),
-                    html.P(["All the COVID related data, used in this dashboard can be found ", html.A(["here"], href="https://epistat.wiv-isp.be/covid/")], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'}),
-                    html.P(["The mobility data can be found ", html.A(["here"], href="https://www.google.com/covid19/mobility/")], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'})
+                    html.P(["All the COVID related data, used in this dashboard can be found ", html.A(["here"], href="https://epistat.wiv-isp.be/covid/"), "."], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'}),
+                    html.P(["The mobility data can be found ", html.A(["here"], href="https://www.google.com/covid19/mobility/"), "."], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'})
                 ]),
             ],
                 id="about-info-div",
