@@ -317,7 +317,7 @@ def render_content(tab):
                     html.Div([
                         dbc.Button(
                             "More information about this page",
-                            id="collapse-button",
+                            id="collapse-mobility-info",
                             color="primary",
                             n_clicks=0
                         ),
@@ -331,7 +331,7 @@ def render_content(tab):
                                     ]
                                 )
                             ),
-                            id="collapse",
+                            id="mobility-info-collapse",
                             is_open=False,
                         )
                     ]), width=4,
@@ -354,14 +354,146 @@ def render_content(tab):
     elif tab == 'about':
         return html.Div([
             html.Div([
+                html.Div([
+                    html.H5([
+                        "About"
+                    ]),
+                    html.P(["This dashboard is a result from a research done in collaboration with São Paulo State University (UNESP)"], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'}),
+                    html.P([
+                        "Some information about the data can be found on this page, for a more detailed explication about our methodologies please refer to the paper of the research. Download the paper ",
+                        html.A(["here"])
+                        ], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'})
+                ]),
 
+                dbc.Row([
+                    dbc.Col([
+                        html.Div([
+                            dbc.Button([
+                                "More information about the cases"
+                            ],
+                            id="collapse-cases-info",
+                            color="primary",
+                            n_clicks=0
+                            ),
+                            dbc.Collapse([
+                                dbc.Card([
+                                    dbc.CardBody([
+                                        html.Article([
+                                            html.H5([
+                                                "Recovered cases"
+                                            ]),
+                                            html.P([
+                                                "Since the Belgian government doesn't provide data about the recovered cases, the recovered cases found in this dashboard are estimated. The way we estimated these is the following: the recovered cases of today are the new cases of 14 days ago. Taken that infected people will only recover or die after exactly 14 days."
+                                            ]),
+                                            html.H5([
+                                                "Deaths"
+                                            ]),
+                                            html.P([
+                                                "The Belgian government doesn't provide information about the deaths for each province, because of that information about the deaths for each province aren't provided here either."
+                                            ]),
+                                            html.H5([
+                                                "Active cases"
+                                            ]),
+                                            html.P([
+                                                "The government doesn't provide data about active cases, so the cases found on this website are estimated aswell. The way of estimation is the following: the active infections on a specific day are equal to the amount of cumulative cases - the amount of cumulative recovered - the amount of cumulative deaths."
+                                            ], style={"marginBottom": "0"})
+                                        ])
+                                    ])
+                                ])
+                            ],
+                            id="cases-info-collapse",
+                            is_open=False
+                            )
+                        ])
+                    ]),
+                ], style={"marginBottom": "2em"}),
+
+                dbc.Row([
+                    dbc.Col([
+                        html.Div([
+                            dbc.Button([
+                                "More information about the predictions"
+                            ],
+                            id="collapse-predictions-info",
+                            color="primary",
+                            n_clicks=0
+                            ),
+                            dbc.Collapse([
+                                dbc.Card([
+                                    dbc.CardBody([
+                                        html.Article([
+                                            html.H5([
+                                                "Predictions"
+                                            ]),
+                                            html.P([
+                                                "The predictions are made using a neural network together with a SIR model. The neural network takes 31 days to train itself and predicts the next 14 days."
+                                            ]),
+                                            html.H5([
+                                                "Reproduction factor"
+                                            ]),
+                                            html.P([
+                                                "The reproduction factor shows the average of how many extra infections an infected person will cause."
+                                            ], style={"marginBottom": "0"})
+                                        ])
+                                    ])
+                                ])
+                            ],
+                            id="predictions-info-collapse",
+                            is_open=False
+                            )
+                        ])
+                    ]),
+                ], style={"marginBottom": "2em"}),
+
+                dbc.Row([
+                    dbc.Col([
+                        html.Div([
+                            dbc.Button([
+                                "More information about the clustering"
+                            ],
+                            id="collapse-clustering-info",
+                            color="primary",
+                            n_clicks=0
+                            ),
+                            dbc.Collapse([
+                                dbc.Card([
+                                    dbc.CardBody([
+                                        html.Article([
+                                            html.H5([
+                                                "Clustering"
+                                            ]),
+                                            html.P([
+                                                "The clustering algorithm used is the Kmeans algorithm."
+                                            ], style={"marginBottom": "0"}),
+                                        ])
+                                    ])
+                                ])
+                            ],
+                            id="clustering-info-collapse",
+                            is_open=False
+                            )
+                        ])
+                    ]),
+                ], style={"marginBottom": "2em"}),
+
+                html.Div([
+                    html.H5([
+                        "Sources"
+                    ]),
+                    html.P(["All the COVID related data, used in this dashboard can be found ", html.A(["here"], href="https://epistat.wiv-isp.be/covid/")], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'}),
+                    html.P(["The mobility data can be found ", html.A(["here"], href="https://www.google.com/covid19/mobility/")], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'})
+                ]),
             ],
                 id="about-info-div",
                 style={
-                    "marginTop": "2rem"
+                    "display": "flex",
+                    "flex-direction": "column",
+                    "margin": "auto",
+                    "width": "80%"
                 }
             ),
-        ])
+        ], style={"marginTop": "2rem",})
+
 
 ##########################
 ###                    ###
@@ -1230,9 +1362,39 @@ def update_province_tests_info(province):
 
 
 @app.callback(
-    Output("collapse", "is_open"),
-    [Input("collapse-button", "n_clicks")],
-    [State("collapse", "is_open")]
+    Output("mobility-info-collapse", "is_open"),
+    [Input("collapse-mobility-info", "n_clicks")],
+    [State("mobility-info-collapse", "is_open")]
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+@app.callback(
+    Output("cases-info-collapse", "is_open"),
+    [Input("collapse-cases-info", "n_clicks")],
+    [State("cases-info-collapse", "is_open")]
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+@app.callback(
+    Output("predictions-info-collapse", "is_open"),
+    [Input("collapse-predictions-info", "n_clicks")],
+    [State("predictions-info-collapse", "is_open")]
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+@app.callback(
+    Output("clustering-info-collapse", "is_open"),
+    [Input("collapse-clustering-info", "n_clicks")],
+    [State("clustering-info-collapse", "is_open")]
 )
 def toggle_collapse(n, is_open):
     if n:
