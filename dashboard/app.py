@@ -474,7 +474,7 @@ def render_content(tab):
                             )
                         ])
                     ]),
-                ]),
+                ], style={"marginBottom": "1em"}),
 
                 html.Div([
                     html.H5([
