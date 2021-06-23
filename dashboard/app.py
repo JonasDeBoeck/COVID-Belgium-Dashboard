@@ -8,7 +8,7 @@ import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 from dash_html_components.Div import Div
 from dash_html_components.Span import Span
 from dash_html_components.Title import Title
@@ -286,30 +286,57 @@ def render_content(tab):
         ])
     elif tab == 'mobility':
         return html.Div([
-            dcc.Dropdown(
-                id='predictions-province',
-                options=[
-                    {'label': 'Belgium', 'value': 'Belgium'},
-                    {'label': 'Antwerpen', 'value': 'Antwerpen'},
-                    {'label': 'Waals-Brabant', 'value': 'BrabantWallon'},
-                    {'label': 'Brussel', 'value': 'Brussels'},
-                    {'label': 'Henegouwen', 'value': 'Hainaut'},
-                    {'label': 'Luik', 'value': 'Liège'},
-                    {'label': 'Limburg', 'value': 'Limburg'},
-                    {'label': 'Luxemburg', 'value': 'Luxembourg'},
-                    {'label': 'Namen', 'value': 'Namur'},
-                    {'label': 'Oost-Vlaanderen', 'value': 'OostVlaanderen'},
-                    {'label': 'Vlaams-Brabant', 'value': 'VlaamsBrabant'},
-                    {'label': 'West-Vlaanderen', 'value': 'WestVlaanderen'},
-                ],
-                value='Belgium',
-                clearable=False,
-                style={
-                    "width": "200px",
-                    "margin": "auto",
-                    "marginTop": "2rem"
-                }
-            ),
+            dbc.Row([
+                dbc.Col(
+                    dcc.Dropdown(
+                        id='predictions-province',
+                        options=[
+                            {'label': 'Belgium', 'value': 'Belgium'},
+                            {'label': 'Antwerpen', 'value': 'Antwerpen'},
+                            {'label': 'Waals-Brabant', 'value': 'BrabantWallon'},
+                            {'label': 'Brussel', 'value': 'Brussels'},
+                            {'label': 'Henegouwen', 'value': 'Hainaut'},
+                            {'label': 'Luik', 'value': 'Liège'},
+                            {'label': 'Limburg', 'value': 'Limburg'},
+                            {'label': 'Luxemburg', 'value': 'Luxembourg'},
+                            {'label': 'Namen', 'value': 'Namur'},
+                            {'label': 'Oost-Vlaanderen', 'value': 'OostVlaanderen'},
+                            {'label': 'Vlaams-Brabant', 'value': 'VlaamsBrabant'},
+                            {'label': 'West-Vlaanderen', 'value': 'WestVlaanderen'},
+                        ],
+                        value='Belgium',
+                        clearable=False,
+                        style={
+                            "width": "200px",
+                            "margin": "auto",
+                        }
+                    ), width=2,
+                ),
+
+                dbc.Col(
+                    html.Div([
+                        dbc.Button(
+                            "More information about this page",
+                            id="collapse-button",
+                            color="primary",
+                            n_clicks=0
+                        ),
+
+                        dbc.Collapse(
+                            dbc.Card(
+                                dbc.CardBody(
+                                    [
+                                        html.P(["The numbers on this page represent a percentage change for different sectors."], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'}),
+                                        html.P(["This percentage change shows the change of mobility for the sectors comparing it to the average before the pandemic."], style={'margin': '5px', 'marginLeft': '0px', 'marginRight': '0px'})
+                                    ]
+                                )
+                            ),
+                            id="collapse",
+                            is_open=False,
+                        )
+                    ]), width=4,
+                )
+            ], style={"marginTop": "2rem", "marginLeft": "0", "marginRight": "0", "justifyContent": "center"}),
 
             html.Div([
 
@@ -1193,6 +1220,24 @@ def update_province_tests_info(province):
     ])
 
     return [div]
+
+
+###############################
+###                         ###
+### CALLBACKS FOR COLLAPSES ###
+###                         ###
+###############################
+
+
+@app.callback(
+    Output("collapse", "is_open"),
+    [Input("collapse-button", "n_clicks")],
+    [State("collapse", "is_open")]
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 
 ###############################
