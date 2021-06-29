@@ -12,7 +12,7 @@ data = pd.read_csv("data/filtered_data/CASES_RECOVERED_DEATHS_ACTIVE.csv")
 for province in province_metadata.itertuples():
     os.makedirs(f"data/resulted_data/neural_network/temp/{province[1]}", exist_ok = True)
     province_data = (data[data["REGION"] == province[1]])
-    start_day = 0
+    start_day = 10
     end_day = 31
     prev = 0
 
@@ -22,7 +22,7 @@ for province in province_metadata.itertuples():
         ds = province_data[["At"]]
         ini = ds[ds["At"] > 0]
         nData = len(ini)
-        sl1 = dLen
+        sl1 = 31 - dLen
         sl = 31
         learner, df = Utils.run_region(province[1], sl1, sl, province_data, province[2], step=14, is_SIR=True)
         df.to_csv(f"data/resulted_data/neural_network/temp/{province[1]}/Subregions_Pred_{dLen}D_prev-{prev}-{province[1]}.csv")

@@ -507,9 +507,9 @@ def filter_results(region, dia_ini, dia_fim, prev, pasta, inner_dir, coef_I = 1,
     
     if return_total or len(df_g1) == 0:
         return df_g1,df_g1,df_g1
-    # df_mean = df_g1.groupby('Data', as_index=False).agg({c:gmean if c not in ['Data','SP-Subregião','Used in Train','beta(t)', 'Gamma',
-    #                                                                             'Rt','OPTM_Result'] else non_num_mean for c in df.columns})
-    df_mean = df_g1.groupby('Data', as_index=False).mean()
+    df_mean = df_g1.groupby('Data', as_index=False).agg({c:gmean if c not in ['Data','SP-Subregião','Used in Train','beta(t)', 'Gamma',
+                                                                                'Rt','OPTM_Result'] else non_num_mean for c in df.columns})
+    # df_mean = df_g1.groupby('Data', as_index=False).mean()
     df_mean['SP-Subregião'] = region
     df_min = df_g1.groupby('Data', as_index=False).min()
     df_max = df_g1.groupby('Data', as_index=False).max()
