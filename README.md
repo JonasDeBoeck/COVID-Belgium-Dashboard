@@ -1,5 +1,6 @@
 # COVID-Belgium-Dashboard
 **Website is deactivated at this time**
+
 https://www.covid19-stats.be
 
 # A dashboard containing various statistics about the COVID19 pandemic in Belgium
